@@ -1,0 +1,7 @@
+# Raw source material, already ported into app/(marketing) + public/images -- not needed at build/runtime
+webflow-export
+
+# Never needed in a deploy upload
+.git
+node_modules
+.next

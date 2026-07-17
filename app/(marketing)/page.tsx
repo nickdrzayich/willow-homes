@@ -59,12 +59,6 @@ export default function HomePage() {
               />
             </div>
           </div>
-          <div className="collection-list-wrapper w-dyn-list">
-            <div role="list" className="collection-list w-dyn-items" />
-            <div className="w-dyn-empty">
-              <div>No items found.</div>
-            </div>
-          </div>
         </div>
       </div>
       <div className="about">
