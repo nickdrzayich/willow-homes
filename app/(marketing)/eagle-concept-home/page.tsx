@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SiteNav } from "@/components/marketing/site-nav";
 import { SiteFooter } from "@/components/marketing/site-footer";
 
@@ -93,9 +92,9 @@ export default function EagleConceptHomePage() {
         <h1 className="heading-3">Questions?</h1>
         <div className="container">
           <div className="h2-container cc-questions" />
-          <Link href="/contact" className="button w-button">
+          <a href="/contact" className="button w-button">
             Contact Us
-          </Link>
+          </a>
         </div>
         <div className="container">
           {/* Source repeats the same 4 questions across 4 containers (2 pairs, twice) -- ported as-is */}

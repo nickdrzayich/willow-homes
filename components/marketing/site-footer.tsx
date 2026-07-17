@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 const LINKS = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
@@ -22,18 +20,18 @@ export function SiteFooter({ current }: { current: "/" | "/about" | "/contact" |
         <p className="paragraph-light">Let&#x27;s Build Something Different.</p>
         <div className="footer-link-wrap">
           {LINKS.map((link) => (
-            <Link
+            <a
               key={link.href}
               href={link.href}
               aria-current={current === link.href ? "page" : undefined}
               className={`footer-link-white${current === link.href ? " w--current" : ""}`}
             >
               {link.label}
-            </Link>
+            </a>
           ))}
-          <Link href="/admin/login" className="footer-link-white">
+          <a href="/admin/login" className="footer-link-white">
             Admin
-          </Link>
+          </a>
         </div>
         <div className="footer-wrapper">
           <a

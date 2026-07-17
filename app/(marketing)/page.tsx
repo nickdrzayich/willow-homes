@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { SiteNav } from "@/components/marketing/site-nav";
 import { SiteFooter } from "@/components/marketing/site-footer";
@@ -15,9 +14,9 @@ export default function HomePage() {
       <SiteNav current="/" />
       <div className="header">
         <div className="header-content">
-          <Link href="/contact" className="button w-button">
+          <a href="/contact" className="button w-button">
             Contact Us
-          </Link>
+          </a>
         </div>
       </div>
       <div className="features">
@@ -69,9 +68,9 @@ export default function HomePage() {
               couple unique and intentional design with quality construction to build homes that are beautiful,
               functional and one of a kind.
             </h2>
-            <Link href="/about" className="link">
+            <a href="/about" className="link">
               More About Us
-            </Link>
+            </a>
           </div>
         </div>
       </div>

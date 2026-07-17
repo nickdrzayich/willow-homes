@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 const LINKS = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
@@ -18,7 +16,8 @@ export function SiteNav({ current }: { current: "/" | "/about" | "/contact" | nu
       className="navigation w-nav"
     >
       <div className="navigation-container">
-        <Link
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- intentional full page load, see WebflowScripts */}
+        <a
           href="/"
           aria-current={current === "/" ? "page" : undefined}
           className={`logo w-inline-block${current === "/" ? " w--current" : ""}`}
@@ -32,17 +31,17 @@ export function SiteNav({ current }: { current: "/" | "/about" | "/contact" | nu
             alt=""
             className="image-6"
           />
-        </Link>
+        </a>
         <nav role="navigation" className="nav-menu w-nav-menu">
           {LINKS.map((link) => (
-            <Link
+            <a
               key={link.href}
               href={link.href}
               aria-current={current === link.href ? "page" : undefined}
               className={`nav-link w-nav-link${current === link.href ? " w--current" : ""}`}
             >
               {link.label}
-            </Link>
+            </a>
           ))}
           <div className="bullet" />
           <a href="tel:208-484-3120" className="navigation-button w-button">
