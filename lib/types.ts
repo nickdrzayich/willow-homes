@@ -20,6 +20,7 @@ export type ExpenseCategory =
   | "other";
 export type ExpensePaidStatus = "unpaid" | "paid";
 export type InvoiceStatus = "draft" | "sent" | "paid";
+export type TransactionType = "deposit" | "withdrawal";
 
 export interface Database {
   public: {
@@ -380,6 +381,43 @@ export interface Database {
             columns: ["invoice_id"];
             isOneToOne: false;
             referencedRelation: "monthly_invoices";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      account_transactions: {
+        Row: {
+          id: string;
+          project_id: string;
+          transaction_date: string;
+          type: TransactionType;
+          amount: number;
+          description: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          transaction_date?: string;
+          type: TransactionType;
+          amount: number;
+          description?: string | null;
+          created_by?: string | null;
+        };
+        Update: {
+          transaction_date?: string;
+          type?: TransactionType;
+          amount?: number;
+          description?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "account_transactions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
             referencedColumns: ["id"];
           },
         ];

@@ -6,7 +6,7 @@ import { TotalsBar } from "@/components/trades/totals-bar";
 import { TradeList } from "@/components/trades/trade-list";
 import { AddTradeForm } from "@/components/trades/add-trade-form";
 import { Button } from "@/components/ui/button";
-import { Receipt, Settings, Users } from "lucide-react";
+import { Receipt, Settings, Users, Wallet } from "lucide-react";
 
 export default async function ProjectDetailPage({
   params,
@@ -54,6 +54,14 @@ export default async function ProjectDetailPage({
           {project.address && <p className="mt-1 text-sm text-muted-foreground">{project.address}</p>}
         </div>
         <div className="flex gap-2">
+          <Button
+            render={<Link href={`/admin/projects/${projectId}/ledger`} />}
+            nativeButton={false}
+            variant="outline"
+            size="sm"
+          >
+            <Wallet className="h-4 w-4" /> Ledger
+          </Button>
           <Button
             render={<Link href={`/admin/projects/${projectId}/expenses`} />}
             nativeButton={false}
