@@ -25,7 +25,11 @@ export default async function ProjectSettingsPage({
   } = await supabase.auth.getUser();
 
   const [{ data: project }, { data: membership }] = await Promise.all([
-    supabase.from("projects").select("id, name, address, sqft").eq("id", projectId).single(),
+    supabase
+      .from("projects")
+      .select("id, name, address, sqft, builder_fee_percent")
+      .eq("id", projectId)
+      .single(),
     supabase
       .from("project_members")
       .select("role")
@@ -64,6 +68,20 @@ export default async function ProjectSettingsPage({
             <div className="flex flex-col gap-2">
               <Label htmlFor="sqft">Square feet</Label>
               <Input id="sqft" name="sqft" type="number" step="1" min="0" defaultValue={project.sqft ?? ""} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="builderFeePercent">Builder fee %</Label>
+              <Input
+                id="builderFeePercent"
+                name="builderFeePercent"
+                type="number"
+                step="0.1"
+                min="0"
+                defaultValue={project.builder_fee_percent}
+              />
+              <p className="text-xs text-muted-foreground">
+                Applied to the Cost of the Work on generated monthly invoices.
+              </p>
             </div>
             <Button type="submit">Save changes</Button>
           </form>

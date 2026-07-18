@@ -9,6 +9,17 @@
 export type MemberRole = "owner" | "editor" | "viewer";
 export type MemberStatus = "invited" | "active";
 export type BidStatus = "sent" | "estimate" | "actual";
+export type ExpenseCategory =
+  | "subcontractor"
+  | "material"
+  | "permit_fee"
+  | "general_conditions"
+  | "change_order"
+  | "allowance_overage"
+  | "unforeseen_condition"
+  | "other";
+export type ExpensePaidStatus = "unpaid" | "paid";
+export type InvoiceStatus = "draft" | "sent" | "paid";
 
 export interface Database {
   public: {
@@ -36,6 +47,7 @@ export interface Database {
           name: string;
           address: string | null;
           sqft: number | null;
+          builder_fee_percent: number;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -45,12 +57,14 @@ export interface Database {
           name: string;
           address?: string | null;
           sqft?: number | null;
+          builder_fee_percent?: number;
           created_by: string;
         };
         Update: {
           name?: string;
           address?: string | null;
           sqft?: number | null;
+          builder_fee_percent?: number;
         };
         Relationships: [
           {
@@ -256,6 +270,116 @@ export interface Database {
             columns: ["company_id"];
             isOneToOne: false;
             referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      monthly_invoices: {
+        Row: {
+          id: string;
+          project_id: string;
+          period_start: string;
+          period_end: string;
+          status: InvoiceStatus;
+          subtotal: number;
+          builder_fee_percent: number;
+          builder_fee_amount: number;
+          total: number;
+          sent_at: string | null;
+          paid_at: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          period_start: string;
+          period_end: string;
+          status?: InvoiceStatus;
+          subtotal?: number;
+          builder_fee_percent: number;
+          builder_fee_amount?: number;
+          total?: number;
+          sent_at?: string | null;
+          paid_at?: string | null;
+          created_by?: string | null;
+        };
+        Update: {
+          status?: InvoiceStatus;
+          sent_at?: string | null;
+          paid_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "monthly_invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      expenses: {
+        Row: {
+          id: string;
+          project_id: string;
+          invoice_id: string | null;
+          expense_date: string;
+          category: ExpenseCategory;
+          vendor_name: string | null;
+          description: string | null;
+          amount: number;
+          billable: boolean;
+          paid_status: ExpensePaidStatus;
+          paid_date: string | null;
+          invoice_file_path: string | null;
+          invoice_file_name: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          invoice_id?: string | null;
+          expense_date?: string;
+          category?: ExpenseCategory;
+          vendor_name?: string | null;
+          description?: string | null;
+          amount: number;
+          billable?: boolean;
+          paid_status?: ExpensePaidStatus;
+          paid_date?: string | null;
+          invoice_file_path?: string | null;
+          invoice_file_name?: string | null;
+          created_by?: string | null;
+        };
+        Update: {
+          invoice_id?: string | null;
+          expense_date?: string;
+          category?: ExpenseCategory;
+          vendor_name?: string | null;
+          description?: string | null;
+          amount?: number;
+          billable?: boolean;
+          paid_status?: ExpensePaidStatus;
+          paid_date?: string | null;
+          invoice_file_path?: string | null;
+          invoice_file_name?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "expenses_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "monthly_invoices";
             referencedColumns: ["id"];
           },
         ];

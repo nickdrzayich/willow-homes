@@ -1,4 +1,4 @@
-import type { BidStatus } from "@/lib/types";
+import type { BidStatus, ExpenseCategory } from "@/lib/types";
 
 export interface ProjectTotals {
   grandTotal: number;
@@ -53,6 +53,19 @@ export function computeTradeStage(bids: { status: BidStatus; is_winner: boolean 
   if (bids.some((b) => b.status === "actual")) return "needs_decision";
   return "requested";
 }
+
+// Mirrors the "Cost of the Work" breakdown in the Cost-Plus contract (Section 3),
+// so the itemized monthly report reads the way the contract describes costs.
+export const EXPENSE_CATEGORY_META: Record<ExpenseCategory, { label: string }> = {
+  subcontractor: { label: "Subcontractor invoice" },
+  material: { label: "Materials" },
+  permit_fee: { label: "Permits, engineering & municipal fees" },
+  general_conditions: { label: "General conditions" },
+  change_order: { label: "Change order" },
+  allowance_overage: { label: "Allowance overage" },
+  unforeseen_condition: { label: "Unforeseen site condition" },
+  other: { label: "Other" },
+};
 
 export function formatCurrency(value: number | null | undefined): string {
   if (value === null || value === undefined) return "—";

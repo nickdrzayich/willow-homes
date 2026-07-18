@@ -54,6 +54,7 @@ export async function updateProjectSettings(projectId: string, formData: FormDat
   const name = String(formData.get("name") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim() || null;
   const sqftRaw = String(formData.get("sqft") ?? "").trim();
+  const builderFeeRaw = String(formData.get("builderFeePercent") ?? "").trim();
 
   await supabase
     .from("projects")
@@ -61,6 +62,7 @@ export async function updateProjectSettings(projectId: string, formData: FormDat
       name,
       address,
       sqft: sqftRaw ? Number(sqftRaw) : null,
+      builder_fee_percent: builderFeeRaw ? Number(builderFeeRaw) : 20,
     })
     .eq("id", projectId);
 

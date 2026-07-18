@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
   // cross-origin dev asset requests, the page renders but never hydrates, and
   // every onClick handler (expand/collapse, etc.) silently does nothing.
   allowedDevOrigins: ["192.168.4.156"],
+  // Default 1MB is too small for uploaded invoice/receipt photos and PDFs.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
 };
 
 export default nextConfig;
