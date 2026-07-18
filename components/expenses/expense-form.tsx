@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { FileDropInput } from "@/components/expenses/file-drop-input";
 import { EXPENSE_CATEGORY_META } from "@/lib/calculations";
 import type { ExpenseCategory } from "@/lib/types";
 
@@ -118,10 +119,12 @@ export function ExpenseForm({
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="invoiceFile">
-              Vendor invoice / receipt{expense?.invoice_file_name ? ` (replace "${expense.invoice_file_name}")` : ""}
-            </Label>
-            <Input id="invoiceFile" name="invoiceFile" type="file" accept="image/*,.pdf" />
+            <Label>Vendor invoice / receipt</Label>
+            <FileDropInput
+              name="invoiceFile"
+              accept="image/*,.pdf"
+              defaultFileName={expense?.invoice_file_name}
+            />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input
