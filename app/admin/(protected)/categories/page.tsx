@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export default async function CategoriesPage() {
   const supabase = await createClient();
-  const { data: categories } = await supabase.from("categories").select("id, name").order("sort_order");
+  const { data: categories } = await supabase.from("categories").select("id, name").order("name");
 
   return (
     <div className="flex flex-col gap-6">
