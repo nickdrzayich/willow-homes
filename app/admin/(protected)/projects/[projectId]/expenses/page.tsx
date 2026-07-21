@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Plus, FileStack } from "lucide-react";
+import { ArrowLeft, Plus, FileStack } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ExpenseForm } from "@/components/expenses/expense-form";
 import { ExpenseTable, type ExpenseListItem } from "@/components/expenses/expense-table";
@@ -85,6 +85,12 @@ export default async function ExpensesPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <Link
+        href={`/admin/projects/${projectId}`}
+        className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to {project.name}
+      </Link>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Expenses</h1>
