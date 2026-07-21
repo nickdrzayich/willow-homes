@@ -156,6 +156,24 @@ export interface Database {
           },
         ];
       };
+      categories: {
+        Row: {
+          id: string;
+          name: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          sort_order?: number;
+        };
+        Update: {
+          name?: string;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
       trades: {
         Row: {
           id: string;
@@ -438,6 +456,10 @@ export interface Database {
     Functions: {
       accept_project_invite: {
         Args: { p_project_id: string };
+        Returns: void;
+      };
+      rename_category: {
+        Args: { p_old_name: string; p_new_name: string };
         Returns: void;
       };
     };

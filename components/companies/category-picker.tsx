@@ -14,9 +14,14 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DEFAULT_PRODUCTS_SERVICES } from "@/lib/default-products-services";
 
-export function CategoryPicker({ defaultCategories = [] }: { defaultCategories?: string[] }) {
+export function CategoryPicker({
+  categories,
+  defaultCategories = [],
+}: {
+  categories: string[];
+  defaultCategories?: string[];
+}) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>(defaultCategories);
 
@@ -52,7 +57,7 @@ export function CategoryPicker({ defaultCategories = [] }: { defaultCategories?:
             <CommandList>
               <CommandEmpty>No matches.</CommandEmpty>
               <CommandGroup>
-                {DEFAULT_PRODUCTS_SERVICES.map((category) => (
+                {categories.map((category) => (
                   <CommandItem key={category} value={category} onSelect={() => toggle(category)}>
                     <Check
                       className={cn(

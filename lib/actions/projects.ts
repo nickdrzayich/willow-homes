@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_PRODUCTS_SERVICES } from "@/lib/default-products-services";
 
 export async function createProject(formData: FormData) {
   const supabase = await createClient();
@@ -35,12 +34,17 @@ export async function createProject(formData: FormData) {
     redirect(`/admin/projects/new?error=${encodeURIComponent(error?.message ?? "Could not create project")}`);
   }
 
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("name, sort_order")
+    .order("sort_order");
+
   await supabase.from("trades").insert(
-    DEFAULT_PRODUCTS_SERVICES.map((itemName, index) => ({
+    (categories ?? []).map((category) => ({
       project_id: data.id,
-      name: itemName,
+      name: category.name,
       qty: 1,
-      sort_order: index,
+      sort_order: category.sort_order,
     }))
   );
 

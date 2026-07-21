@@ -23,10 +23,15 @@ export default async function SubcontractorsPage({
   const { error } = await searchParams;
   const supabase = await createClient();
 
-  const { data: companies } = await supabase
-    .from("companies")
-    .select("id, name, category_names, archived_at, bids(count), company_contacts(id, name, phone, email)")
-    .order("name");
+  const [{ data: companies }, { data: categories }] = await Promise.all([
+    supabase
+      .from("companies")
+      .select("id, name, category_names, archived_at, bids(count), company_contacts(id, name, phone, email)")
+      .order("name"),
+    supabase.from("categories").select("name").order("sort_order"),
+  ]);
+
+  const categoryNames = (categories ?? []).map((c) => c.name);
 
   const items = (companies ?? []).map((c) => ({
     id: c.id,
@@ -65,7 +70,7 @@ export default async function SubcontractorsPage({
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Products/services</Label>
-                <CategoryPicker />
+                <CategoryPicker categories={categoryNames} />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit">Create</Button>

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const LINKS = [
   { href: "/admin/projects", label: "Projects" },
   { href: "/admin/subcontractors", label: "Subcontractors" },
+  { href: "/admin/categories", label: "Categories" },
 ];
 
 export function NavLinks() {

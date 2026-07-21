@@ -23,7 +23,7 @@ export default async function CompanyDetailPage({
   const { companyId } = await params;
   const supabase = await createClient();
 
-  const [{ data: company }, { data: contacts }, { data: bids }] = await Promise.all([
+  const [{ data: company }, { data: contacts }, { data: bids }, { data: categories }] = await Promise.all([
     supabase
       .from("companies")
       .select("id, name, notes, category_names, archived_at")
@@ -41,7 +41,10 @@ export default async function CompanyDetailPage({
       )
       .eq("company_id", companyId)
       .order("created_at", { ascending: false }),
+    supabase.from("categories").select("name").order("sort_order"),
   ]);
+
+  const categoryNames = (categories ?? []).map((c) => c.name);
 
   if (!company) notFound();
 
@@ -74,7 +77,7 @@ export default async function CompanyDetailPage({
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Products/services</Label>
-                <CategoryPicker defaultCategories={company.category_names} />
+                <CategoryPicker categories={categoryNames} defaultCategories={company.category_names} />
               </div>
               <Button type="submit" className="self-start">
                 Save
