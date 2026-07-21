@@ -37,7 +37,7 @@ export default async function ProjectDetailPage({
         )
         .eq("project_id", projectId)
         .order("name", { ascending: true }),
-      supabase.from("companies").select("id, name").order("name"),
+      supabase.from("companies").select("id, name").is("archived_at", null).order("name"),
       supabase.from("project_totals").select("grand_total").eq("project_id", projectId).maybeSingle(),
     ]);
 

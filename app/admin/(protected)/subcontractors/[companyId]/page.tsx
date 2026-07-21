@@ -6,11 +6,13 @@ import { formatCurrencyPrecise } from "@/lib/calculations";
 import { BidPill } from "@/components/trades/bid-pill";
 import { ContactsSection } from "@/components/companies/contacts-section";
 import { CategoryPicker } from "@/components/companies/category-picker";
+import { CompanyDangerZone } from "@/components/companies/company-danger-zone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Trophy } from "lucide-react";
 
 export default async function CompanyDetailPage({
@@ -22,7 +24,11 @@ export default async function CompanyDetailPage({
   const supabase = await createClient();
 
   const [{ data: company }, { data: contacts }, { data: bids }] = await Promise.all([
-    supabase.from("companies").select("id, name, notes, category_names").eq("id", companyId).single(),
+    supabase
+      .from("companies")
+      .select("id, name, notes, category_names, archived_at")
+      .eq("id", companyId)
+      .single(),
     supabase
       .from("company_contacts")
       .select("id, name, phone, email")
@@ -44,7 +50,10 @@ export default async function CompanyDetailPage({
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{company.name}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight">{company.name}</h1>
+          {company.archived_at && <Badge variant="secondary">Archived</Badge>}
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">Subcontractor details</p>
       </div>
 
@@ -110,6 +119,20 @@ export default async function CompanyDetailPage({
             ) : null
           )}
         </div>
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-sm font-medium text-muted-foreground">Danger zone</h2>
+        <Card className="border-destructive/40">
+          <CardContent className="pt-6">
+            <CompanyDangerZone
+              companyId={companyId}
+              companyName={company.name}
+              archived={company.archived_at !== null}
+              canDelete={(bids?.length ?? 0) === 0}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

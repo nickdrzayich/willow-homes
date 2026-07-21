@@ -128,6 +128,7 @@ export interface Database {
           name: string;
           notes: string | null;
           category_names: string[];
+          archived_at: string | null;
           created_by: string | null;
           created_at: string;
         };
@@ -136,12 +137,14 @@ export interface Database {
           name: string;
           notes?: string | null;
           category_names?: string[];
+          archived_at?: string | null;
           created_by?: string | null;
         };
         Update: {
           name?: string;
           notes?: string | null;
           category_names?: string[];
+          archived_at?: string | null;
         };
         Relationships: [
           {

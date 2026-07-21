@@ -25,7 +25,7 @@ export default async function SubcontractorsPage({
 
   const { data: companies } = await supabase
     .from("companies")
-    .select("id, name, category_names, bids(count), company_contacts(id, name, phone, email)")
+    .select("id, name, category_names, archived_at, bids(count), company_contacts(id, name, phone, email)")
     .order("name");
 
   const items = (companies ?? []).map((c) => ({
@@ -34,6 +34,7 @@ export default async function SubcontractorsPage({
     categoryNames: c.category_names ?? [],
     bidCount: c.bids?.[0]?.count ?? 0,
     primaryContactName: c.company_contacts?.[0]?.name ?? null,
+    archived: c.archived_at !== null,
   }));
 
   return (

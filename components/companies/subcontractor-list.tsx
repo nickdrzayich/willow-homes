@@ -6,6 +6,7 @@ import { Search, X, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -20,11 +21,13 @@ export interface SubcontractorListItem {
   categoryNames: string[];
   bidCount: number;
   primaryContactName: string | null;
+  archived: boolean;
 }
 
 export function SubcontractorList({ companies }: { companies: SubcontractorListItem[] }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("all");
+  const [showArchived, setShowArchived] = useState(false);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -34,6 +37,7 @@ export function SubcontractorList({ companies }: { companies: SubcontractorListI
 
   const query = search.trim().toLowerCase();
   const visible = companies.filter((c) => {
+    if (!showArchived && c.archived) return false;
     if (query && !c.name.toLowerCase().includes(query)) return false;
     if (category !== "all" && !c.categoryNames.includes(category)) return false;
     return true;
@@ -73,6 +77,15 @@ export function SubcontractorList({ companies }: { companies: SubcontractorListI
             ))}
           </SelectContent>
         </Select>
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={showArchived}
+            onChange={(e) => setShowArchived(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          Show archived
+        </label>
       </div>
 
       {!visible.length ? (
@@ -90,9 +103,21 @@ export function SubcontractorList({ companies }: { companies: SubcontractorListI
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((company) => (
             <Link key={company.id} href={`/admin/subcontractors/${company.id}`}>
-              <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm">
+              <Card
+                className={cn(
+                  "h-full transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm",
+                  company.archived && "opacity-60"
+                )}
+              >
                 <CardHeader>
-                  <CardTitle className="text-base">{company.name}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base">{company.name}</CardTitle>
+                    {company.archived && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        Archived
+                      </Badge>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
                   {company.primaryContactName ? (

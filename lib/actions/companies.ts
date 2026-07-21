@@ -37,3 +37,27 @@ export async function updateCompany(companyId: string, formData: FormData) {
   revalidatePath("/admin/subcontractors");
   revalidatePath(`/admin/subcontractors/${companyId}`);
 }
+
+export async function archiveCompany(companyId: string) {
+  const supabase = await createClient();
+  await supabase.from("companies").update({ archived_at: new Date().toISOString() }).eq("id", companyId);
+  revalidatePath("/admin/subcontractors");
+  revalidatePath(`/admin/subcontractors/${companyId}`);
+}
+
+export async function unarchiveCompany(companyId: string) {
+  const supabase = await createClient();
+  await supabase.from("companies").update({ archived_at: null }).eq("id", companyId);
+  revalidatePath("/admin/subcontractors");
+  revalidatePath(`/admin/subcontractors/${companyId}`);
+}
+
+// Only safe to call when the company has zero bids -- bids.company_id has no
+// ON DELETE rule, so the database rejects this outright if any exist. The UI
+// only shows the delete action in that case; archiving covers everything else.
+export async function deleteCompany(companyId: string) {
+  const supabase = await createClient();
+  await supabase.from("companies").delete().eq("id", companyId);
+  revalidatePath("/admin/subcontractors");
+  redirect("/admin/subcontractors");
+}
