@@ -174,6 +174,61 @@ export interface Database {
         };
         Relationships: [];
       };
+      build_schedule_template: {
+        Row: {
+          id: string;
+          day_number: number;
+          tasks: string[];
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          day_number: number;
+          tasks?: string[];
+          notes?: string | null;
+        };
+        Update: {
+          day_number?: number;
+          tasks?: string[];
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      daily_log_entries: {
+        Row: {
+          id: string;
+          project_id: string;
+          log_date: string;
+          tasks: string[];
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          log_date?: string;
+          tasks?: string[];
+          notes?: string | null;
+          created_by?: string | null;
+        };
+        Update: {
+          log_date?: string;
+          tasks?: string[];
+          notes?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "daily_log_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       trades: {
         Row: {
           id: string;

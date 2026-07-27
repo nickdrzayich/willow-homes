@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/admin/projects", label: "Projects" },
   { href: "/admin/subcontractors", label: "Subcontractors" },
   { href: "/admin/categories", label: "Categories" },
+  { href: "/admin/build-schedule", label: "Build Schedule" },
 ];
 
 export function NavLinks() {
