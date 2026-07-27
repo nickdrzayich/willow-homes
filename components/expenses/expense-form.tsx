@@ -2,6 +2,8 @@
 
 import { useState, type ReactElement } from "react";
 import { createExpense, updateExpense } from "@/lib/actions/expenses";
+import { createClient } from "@/lib/supabase/client";
+import { sanitizeFileName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +37,8 @@ export interface EditableExpense {
   invoice_file_name: string | null;
 }
 
+const BUCKET = "expense-invoices";
+
 export function ExpenseForm({
   projectId,
   expense,
@@ -45,6 +49,7 @@ export function ExpenseForm({
   trigger: ReactElement;
 }) {
   const [open, setOpen] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const action = expense
     ? updateExpense.bind(null, projectId, expense.id)
     : createExpense.bind(null, projectId);
@@ -59,6 +64,27 @@ export function ExpenseForm({
         </DialogHeader>
         <form
           action={async (formData) => {
+            setUploadError(null);
+            const file = formData.get("invoiceFile");
+            formData.delete("invoiceFile");
+
+            if (file instanceof File && file.size > 0) {
+              const expenseId = expense?.id ?? crypto.randomUUID();
+              const path = `${projectId}/${expenseId}/${sanitizeFileName(file.name)}`;
+              const { error } = await createClient()
+                .storage.from(BUCKET)
+                .upload(path, file, { upsert: true });
+
+              if (error) {
+                setUploadError(error.message);
+                return;
+              }
+
+              formData.set("id", expenseId);
+              formData.set("invoiceFilePath", path);
+              formData.set("invoiceFileName", file.name);
+            }
+
             await action(formData);
             setOpen(false);
           }}
@@ -135,6 +161,7 @@ export function ExpenseForm({
             />
             Billable to owner (uncheck for subcontractor-covered corrective work)
           </label>
+          {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
           <Button type="submit">{expense ? "Save expense" : "Add expense"}</Button>
         </form>
       </DialogContent>

@@ -10,22 +10,6 @@ type InvoiceUpdate = Database["public"]["Tables"]["monthly_invoices"]["Update"];
 
 const BUCKET = "expense-invoices";
 
-function sanitizeFileName(name: string) {
-  return name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-}
-
-async function uploadInvoiceFile(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  projectId: string,
-  expenseId: string,
-  file: File
-) {
-  const path = `${projectId}/${expenseId}/${sanitizeFileName(file.name)}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: true });
-  if (error) throw error;
-  return { path, name: file.name };
-}
-
 export async function createExpense(projectId: string, formData: FormData) {
   const supabase = await createClient();
   const {
@@ -38,20 +22,12 @@ export async function createExpense(projectId: string, formData: FormData) {
   const description = String(formData.get("description") ?? "").trim() || null;
   const amountRaw = String(formData.get("amount") ?? "").trim();
   const billable = formData.get("billable") === "on";
-  const file = formData.get("invoiceFile");
-  const hasFile = file instanceof File && file.size > 0;
+  const invoiceFilePath = String(formData.get("invoiceFilePath") ?? "").trim() || null;
+  const invoiceFileName = String(formData.get("invoiceFileName") ?? "").trim() || null;
 
   if (!amountRaw) return;
 
-  const id = crypto.randomUUID();
-  let invoiceFilePath: string | null = null;
-  let invoiceFileName: string | null = null;
-
-  if (hasFile) {
-    const uploaded = await uploadInvoiceFile(supabase, projectId, id, file as File);
-    invoiceFilePath = uploaded.path;
-    invoiceFileName = uploaded.name;
-  }
+  const id = String(formData.get("id") ?? "").trim() || crypto.randomUUID();
 
   await supabase.from("expenses").insert({
     id,
@@ -79,8 +55,8 @@ export async function updateExpense(projectId: string, expenseId: string, formDa
   const description = String(formData.get("description") ?? "").trim() || null;
   const amountRaw = String(formData.get("amount") ?? "").trim();
   const billable = formData.get("billable") === "on";
-  const file = formData.get("invoiceFile");
-  const hasFile = file instanceof File && file.size > 0;
+  const invoiceFilePath = String(formData.get("invoiceFilePath") ?? "").trim() || null;
+  const invoiceFileName = String(formData.get("invoiceFileName") ?? "").trim() || null;
 
   const fields: ExpenseUpdate = {
     expense_date: expenseDate || undefined,
@@ -91,20 +67,19 @@ export async function updateExpense(projectId: string, expenseId: string, formDa
     billable,
   };
 
-  if (hasFile) {
+  if (invoiceFilePath) {
     const { data: existing } = await supabase
       .from("expenses")
       .select("invoice_file_path")
       .eq("id", expenseId)
       .single();
 
-    if (existing?.invoice_file_path) {
+    if (existing?.invoice_file_path && existing.invoice_file_path !== invoiceFilePath) {
       await supabase.storage.from(BUCKET).remove([existing.invoice_file_path]);
     }
 
-    const uploaded = await uploadInvoiceFile(supabase, projectId, expenseId, file as File);
-    fields.invoice_file_path = uploaded.path;
-    fields.invoice_file_name = uploaded.name;
+    fields.invoice_file_path = invoiceFilePath;
+    fields.invoice_file_name = invoiceFileName;
   }
 
   await supabase.from("expenses").update(fields).eq("id", expenseId);
