@@ -57,8 +57,10 @@ export function BidForm({
         </DialogHeader>
         <form
           action={async (formData) => {
+            const scrollY = window.scrollY;
             await action(formData);
             setOpen(false);
+            requestAnimationFrame(() => window.scrollTo({ top: scrollY }));
           }}
           className="flex flex-col gap-4"
         >
