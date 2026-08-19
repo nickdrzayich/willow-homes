@@ -237,6 +237,7 @@ export interface Database {
           qty: number;
           sort_order: number;
           excluded_from_vertical: boolean;
+          description: string | null;
           created_at: string;
         };
         Insert: {
@@ -246,12 +247,14 @@ export interface Database {
           qty?: number;
           sort_order?: number;
           excluded_from_vertical?: boolean;
+          description?: string | null;
         };
         Update: {
           name?: string;
           qty?: number;
           sort_order?: number;
           excluded_from_vertical?: boolean;
+          description?: string | null;
         };
         Relationships: [
           {
@@ -313,6 +316,39 @@ export interface Database {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      trade_images: {
+        Row: {
+          id: string;
+          trade_id: string;
+          storage_path: string;
+          file_name: string;
+          sort_order: number;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          trade_id: string;
+          storage_path: string;
+          file_name: string;
+          sort_order?: number;
+          created_by?: string | null;
+        };
+        Update: {
+          storage_path?: string;
+          file_name?: string;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "trade_images_trade_id_fkey";
+            columns: ["trade_id"];
+            isOneToOne: false;
+            referencedRelation: "trades";
             referencedColumns: ["id"];
           },
         ];

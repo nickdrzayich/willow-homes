@@ -6,7 +6,7 @@ import { TotalsBar } from "@/components/trades/totals-bar";
 import { TradeList } from "@/components/trades/trade-list";
 import { AddTradeForm } from "@/components/trades/add-trade-form";
 import { Button } from "@/components/ui/button";
-import { NotebookText, Receipt, Settings, Users, Wallet } from "lucide-react";
+import { ClipboardList, NotebookText, Receipt, Settings, Users, Wallet } from "lucide-react";
 
 export default async function ProjectDetailPage({
   params,
@@ -33,7 +33,7 @@ export default async function ProjectDetailPage({
       supabase
         .from("trades")
         .select(
-          "id, name, qty, sort_order, bids(id, company_id, amount, status, is_winner, notes, company:companies(name, company_contacts(id, name, phone, email)))"
+          "id, name, qty, sort_order, description, trade_images(id, storage_path, file_name, sort_order), bids(id, company_id, amount, status, is_winner, notes, company:companies(name, company_contacts(id, name, phone, email)))"
         )
         .eq("project_id", projectId)
         .order("name", { ascending: true }),
@@ -42,6 +42,15 @@ export default async function ProjectDetailPage({
     ]);
 
   if (!project) notFound();
+
+  const allImagePaths = (trades ?? []).flatMap((t) => (t.trade_images ?? []).map((img) => img.storage_path));
+  const signedUrlByPath = new Map<string, string>();
+  if (allImagePaths.length > 0) {
+    const { data: signedUrls } = await supabase.storage.from("trade-images").createSignedUrls(allImagePaths, 3600);
+    for (const entry of signedUrls ?? []) {
+      if (entry.path && entry.signedUrl) signedUrlByPath.set(entry.path, entry.signedUrl);
+    }
+  }
 
   const canEdit = membership?.role === "owner" || membership?.role === "editor";
   const totals = computeProjectTotals(totalsRow?.grand_total ?? 0, project.sqft);
@@ -54,6 +63,14 @@ export default async function ProjectDetailPage({
           {project.address && <p className="mt-1 text-sm text-muted-foreground">{project.address}</p>}
         </div>
         <div className="flex gap-2">
+          <Button
+            render={<Link href={`/admin/projects/${projectId}/spec-sheet`} />}
+            nativeButton={false}
+            variant="outline"
+            size="sm"
+          >
+            <ClipboardList className="h-4 w-4" /> Spec Sheet
+          </Button>
           <Button
             render={<Link href={`/admin/projects/${projectId}/daily-log`} />}
             nativeButton={false}
@@ -109,6 +126,16 @@ export default async function ProjectDetailPage({
           id: trade.id,
           name: trade.name,
           qty: trade.qty,
+          description: trade.description,
+          images: (trade.trade_images ?? [])
+            .slice()
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((img) => ({
+              id: img.id,
+              file_name: img.file_name,
+              storage_path: img.storage_path,
+              url: signedUrlByPath.get(img.storage_path) ?? null,
+            })),
           bids: (trade.bids ?? []).map((b) => ({
             id: b.id,
             company_id: b.company_id,

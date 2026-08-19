@@ -9,6 +9,8 @@ import {
   SubcontractorContactPopover,
   type SubcontractorContact,
 } from "@/components/trades/subcontractor-contact-popover";
+import { TradeDetails } from "@/components/trades/trade-details";
+import type { TradeImage } from "@/components/trades/trade-details-form";
 import { formatCurrency, formatCurrencyPrecise, BID_STATUS_META } from "@/lib/calculations";
 import { deleteBid, toggleWinner } from "@/lib/actions/bids";
 import { deleteTrade } from "@/lib/actions/trades";
@@ -38,7 +40,7 @@ export function TradeRow({
   onToggle,
 }: {
   projectId: string;
-  trade: { id: string; name: string; qty: number };
+  trade: { id: string; name: string; qty: number; description: string | null; images: TradeImage[] };
   bids: TradeBid[];
   companies: CompanyOption[];
   canEdit: boolean;
@@ -102,7 +104,15 @@ export function TradeRow({
 
       {expanded && (
         <div className="border-t px-4 py-3.5">
-          <div className="flex flex-col gap-2">
+          <TradeDetails
+            projectId={projectId}
+            tradeId={trade.id}
+            description={trade.description}
+            images={trade.images}
+            canEdit={canEdit}
+          />
+
+          <div className="mt-3 flex flex-col gap-2">
             {bids.length === 0 && (
               <p className="py-2 text-sm text-muted-foreground">No bids yet.</p>
             )}

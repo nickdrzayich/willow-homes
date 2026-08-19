@@ -5,6 +5,7 @@ import { Search, X, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeTradeStage, TRADE_STAGE_META, type TradeStage } from "@/lib/calculations";
 import { TradeRow, type TradeBid } from "@/components/trades/trade-row";
+import type { TradeImage } from "@/components/trades/trade-details-form";
 import type { CompanyOption } from "@/components/companies/company-picker";
 import { Input } from "@/components/ui/input";
 
@@ -12,6 +13,8 @@ export interface TradeListItem {
   id: string;
   name: string;
   qty: number;
+  description: string | null;
+  images: TradeImage[];
   bids: TradeBid[];
 }
 
