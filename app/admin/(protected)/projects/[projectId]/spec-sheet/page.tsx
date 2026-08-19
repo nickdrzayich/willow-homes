@@ -60,7 +60,7 @@ export default async function SpecSheetPage({
 
             return (
               <div key={trade.id} className="flex flex-col gap-2 break-inside-avoid border-b pb-6 last:border-0">
-                <h2 className="text-base font-semibold">{trade.name}</h2>
+                <h2 className="text-base font-semibold text-primary">{trade.name}</h2>
                 {trade.description ? (
                   <p className="whitespace-pre-wrap text-sm text-muted-foreground">{trade.description}</p>
                 ) : (
