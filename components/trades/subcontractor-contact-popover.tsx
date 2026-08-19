@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Mail, Phone, ArrowUpRight } from "lucide-react";
+import { Mail, Phone, ArrowUpRight, Copy, Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export interface SubcontractorContact {
@@ -40,20 +41,26 @@ export function SubcontractorContactPopover({
                 <p className="text-xs font-medium text-muted-foreground">{contact.name}</p>
                 <div className="mt-0.5 flex flex-col gap-0.5">
                   {contact.phone && (
-                    <a
-                      href={`tel:${contact.phone}`}
-                      className="flex items-center gap-1.5 text-sm hover:underline"
-                    >
-                      <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /> {contact.phone}
-                    </a>
+                    <div className="flex items-center gap-1">
+                      <a
+                        href={`tel:${contact.phone}`}
+                        className="flex min-w-0 items-center gap-1.5 text-sm hover:underline"
+                      >
+                        <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /> {contact.phone}
+                      </a>
+                      <CopyButton value={contact.phone} label="phone number" />
+                    </div>
                   )}
                   {contact.email && (
-                    <a
-                      href={`mailto:${contact.email}`}
-                      className="flex items-center gap-1.5 truncate text-sm hover:underline"
-                    >
-                      <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /> {contact.email}
-                    </a>
+                    <div className="flex min-w-0 items-center gap-1">
+                      <a
+                        href={`mailto:${contact.email}`}
+                        className="flex min-w-0 items-center gap-1.5 truncate text-sm hover:underline"
+                      >
+                        <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /> {contact.email}
+                      </a>
+                      <CopyButton value={contact.email} label="email address" />
+                    </div>
                   )}
                   {!contact.phone && !contact.email && (
                     <p className="text-sm text-muted-foreground">No phone or email.</p>
@@ -71,5 +78,24 @@ export function SubcontractorContactPopover({
         </Link>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <button
+      type="button"
+      title={`Copy ${label}`}
+      onClick={async () => {
+        await navigator.clipboard.writeText(value);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+    >
+      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+    </button>
   );
 }
