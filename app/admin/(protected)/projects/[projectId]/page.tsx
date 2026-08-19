@@ -33,7 +33,7 @@ export default async function ProjectDetailPage({
       supabase
         .from("trades")
         .select(
-          "id, name, qty, sort_order, bids(id, company_id, amount, status, is_winner, notes, company:companies(name))"
+          "id, name, qty, sort_order, bids(id, company_id, amount, status, is_winner, notes, company:companies(name, company_contacts(id, name, phone, email)))"
         )
         .eq("project_id", projectId)
         .order("name", { ascending: true }),
@@ -113,6 +113,7 @@ export default async function ProjectDetailPage({
             id: b.id,
             company_id: b.company_id,
             company_name: b.company?.name ?? null,
+            company_contacts: b.company?.company_contacts ?? [],
             amount: b.amount,
             status: b.status,
             is_winner: b.is_winner,

@@ -5,6 +5,10 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { BidPill } from "@/components/trades/bid-pill";
 import { BidForm, type EditableBid } from "@/components/trades/bid-form";
+import {
+  SubcontractorContactPopover,
+  type SubcontractorContact,
+} from "@/components/trades/subcontractor-contact-popover";
 import { formatCurrency, formatCurrencyPrecise, BID_STATUS_META } from "@/lib/calculations";
 import { deleteBid, toggleWinner } from "@/lib/actions/bids";
 import { deleteTrade } from "@/lib/actions/trades";
@@ -15,6 +19,7 @@ export interface TradeBid {
   id: string;
   company_id: string | null;
   company_name: string | null;
+  company_contacts: SubcontractorContact[];
   amount: number | null;
   status: BidStatus;
   is_winner: boolean;
@@ -124,9 +129,17 @@ export function TradeRow({
                   </form>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    {bid.company_name ?? "No company"}
-                  </p>
+                  {bid.company_id && bid.company_name ? (
+                    <SubcontractorContactPopover
+                      companyId={bid.company_id}
+                      companyName={bid.company_name}
+                      contacts={bid.company_contacts}
+                    >
+                      <p className="truncate text-sm font-medium">{bid.company_name}</p>
+                    </SubcontractorContactPopover>
+                  ) : (
+                    <p className="truncate text-sm font-medium">No company</p>
+                  )}
                   {bid.notes && (
                     <p className="truncate text-xs text-muted-foreground">{bid.notes}</p>
                   )}
