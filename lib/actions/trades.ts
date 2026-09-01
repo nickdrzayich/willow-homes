@@ -47,6 +47,14 @@ export async function deleteTrade(projectId: string, tradeId: string) {
   revalidatePath(`/admin/projects/${projectId}`);
 }
 
+export async function reorderTrades(projectId: string, orderedTradeIds: string[]) {
+  const supabase = await createClient();
+  await Promise.all(
+    orderedTradeIds.map((id, index) => supabase.from("trades").update({ sort_order: index }).eq("id", id))
+  );
+  revalidatePath(`/admin/projects/${projectId}`);
+}
+
 const TRADE_IMAGES_BUCKET = "trade-images";
 
 export async function saveTradeDetails(projectId: string, tradeId: string, formData: FormData) {

@@ -49,6 +49,7 @@ export interface Database {
           address: string | null;
           sqft: number | null;
           builder_fee_percent: number;
+          use_custom_trade_order: boolean;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -59,6 +60,7 @@ export interface Database {
           address?: string | null;
           sqft?: number | null;
           builder_fee_percent?: number;
+          use_custom_trade_order?: boolean;
           created_by: string;
         };
         Update: {
@@ -66,6 +68,7 @@ export interface Database {
           address?: string | null;
           sqft?: number | null;
           builder_fee_percent?: number;
+          use_custom_trade_order?: boolean;
         };
         Relationships: [
           {

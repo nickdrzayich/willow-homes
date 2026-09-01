@@ -22,7 +22,11 @@ export default async function ProjectDetailPage({
 
   const [{ data: project }, { data: membership }, { data: trades }, { data: companies }, { data: totalsRow }] =
     await Promise.all([
-      supabase.from("projects").select("id, name, address, sqft").eq("id", projectId).single(),
+      supabase
+        .from("projects")
+        .select("id, name, address, sqft, use_custom_trade_order")
+        .eq("id", projectId)
+        .single(),
       supabase
         .from("project_members")
         .select("role")
@@ -35,15 +39,18 @@ export default async function ProjectDetailPage({
         .select(
           "id, name, qty, sort_order, description, trade_images(id, storage_path, file_name, sort_order), bids(id, company_id, amount, status, is_winner, notes, company:companies(name, company_contacts(id, name, phone, email)))"
         )
-        .eq("project_id", projectId)
-        .order("name", { ascending: true }),
+        .eq("project_id", projectId),
       supabase.from("companies").select("id, name").is("archived_at", null).order("name"),
       supabase.from("project_totals").select("grand_total").eq("project_id", projectId).maybeSingle(),
     ]);
 
   if (!project) notFound();
 
-  const allImagePaths = (trades ?? []).flatMap((t) => (t.trade_images ?? []).map((img) => img.storage_path));
+  const sortedTrades = (trades ?? []).slice().sort((a, b) =>
+    project.use_custom_trade_order ? a.sort_order - b.sort_order : a.name.localeCompare(b.name)
+  );
+
+  const allImagePaths = sortedTrades.flatMap((t) => (t.trade_images ?? []).map((img) => img.storage_path));
   const signedUrlByPath = new Map<string, string>();
   if (allImagePaths.length > 0) {
     const { data: signedUrls } = await supabase.storage.from("trade-images").createSignedUrls(allImagePaths, 3600);
@@ -122,7 +129,8 @@ export default async function ProjectDetailPage({
 
       <TradeList
         projectId={projectId}
-        trades={(trades ?? []).map((trade) => ({
+        useCustomOrder={project.use_custom_trade_order}
+        trades={sortedTrades.map((trade) => ({
           id: trade.id,
           name: trade.name,
           qty: trade.qty,

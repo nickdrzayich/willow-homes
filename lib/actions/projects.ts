@@ -74,6 +74,12 @@ export async function updateProjectSettings(projectId: string, formData: FormDat
   revalidatePath(`/admin/projects/${projectId}/settings`);
 }
 
+export async function setTradeSortMode(projectId: string, useCustomOrder: boolean) {
+  const supabase = await createClient();
+  await supabase.from("projects").update({ use_custom_trade_order: useCustomOrder }).eq("id", projectId);
+  revalidatePath(`/admin/projects/${projectId}`);
+}
+
 export async function deleteProject(projectId: string) {
   const supabase = await createClient();
   await supabase.from("projects").delete().eq("id", projectId);

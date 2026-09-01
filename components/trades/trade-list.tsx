@@ -1,13 +1,33 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, X, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
+import { Search, X, ChevronsDownUp, ChevronsUpDown, GripVertical, ArrowUpDown } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { computeTradeStage, TRADE_STAGE_META, type TradeStage } from "@/lib/calculations";
 import { TradeRow, type TradeBid } from "@/components/trades/trade-row";
 import type { TradeImage } from "@/components/trades/trade-details-form";
 import type { CompanyOption } from "@/components/companies/company-picker";
+import { setTradeSortMode } from "@/lib/actions/projects";
+import { reorderTrades } from "@/lib/actions/trades";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export interface TradeListItem {
   id: string;
@@ -25,19 +45,32 @@ export function TradeList({
   trades,
   companies,
   canEdit,
+  useCustomOrder,
 }: {
   projectId: string;
   trades: TradeListItem[];
   companies: CompanyOption[];
   canEdit: boolean;
+  useCustomOrder: boolean;
 }) {
   const [filter, setFilter] = useState<TradeStage | "all">("all");
   const [search, setSearch] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [prevTrades, setPrevTrades] = useState(trades);
+  const [orderedTrades, setOrderedTrades] = useState(trades);
+  if (trades !== prevTrades) {
+    setPrevTrades(trades);
+    setOrderedTrades(trades);
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const withStage = useMemo(
-    () => trades.map((trade) => ({ trade, stage: computeTradeStage(trade.bids) })),
-    [trades]
+    () => orderedTrades.map((trade) => ({ trade, stage: computeTradeStage(trade.bids) })),
+    [orderedTrades]
   );
 
   const counts = useMemo(() => {
@@ -53,6 +86,8 @@ export function TradeList({
     ? stageFiltered.filter((t) => t.trade.name.toLowerCase().includes(query))
     : stageFiltered;
 
+  const canReorder = canEdit && useCustomOrder && filter === "all" && !query;
+
   const toggleTrade = (id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -64,6 +99,32 @@ export function TradeList({
 
   const expandAll = () => setExpandedIds(new Set(visible.map(({ trade }) => trade.id)));
   const collapseAll = () => setExpandedIds(new Set());
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = orderedTrades.findIndex((t) => t.id === active.id);
+    const newIndex = orderedTrades.findIndex((t) => t.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const next = arrayMove(orderedTrades, oldIndex, newIndex);
+    setOrderedTrades(next);
+    reorderTrades(projectId, next.map((t) => t.id));
+  }
+
+  const rows = visible.map(({ trade }) => (
+    <TradeRow
+      key={trade.id}
+      projectId={projectId}
+      trade={trade}
+      bids={trade.bids}
+      companies={companies}
+      canEdit={canEdit}
+      expanded={expandedIds.has(trade.id)}
+      onToggle={() => toggleTrade(trade.id)}
+    />
+  ));
 
   return (
     <div className="flex flex-col gap-4">
@@ -99,7 +160,20 @@ export function TradeList({
             />
           ))}
         </div>
-        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          {canEdit && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => setTradeSortMode(projectId, !useCustomOrder)}
+              title={useCustomOrder ? "Switch back to alphabetical order" : "Switch to a manual drag-to-reorder order"}
+            >
+              <ArrowUpDown className="h-3.5 w-3.5" />
+              {useCustomOrder ? "Custom order" : "Alphabetical"}
+            </Button>
+          )}
           <button type="button" onClick={expandAll} className="flex items-center gap-1 rounded-md px-2 py-1 hover:bg-accent/50 hover:text-foreground">
             <ChevronsUpDown className="h-3.5 w-3.5" /> Expand all
           </button>
@@ -109,19 +183,32 @@ export function TradeList({
         </div>
       </div>
 
+      {useCustomOrder && !canReorder && canEdit && (
+        <p className="text-xs text-muted-foreground">Clear the search and stage filter to drag and reorder.</p>
+      )}
+
       <div className="flex flex-col gap-2">
-        {visible.map(({ trade }) => (
-          <TradeRow
-            key={trade.id}
-            projectId={projectId}
-            trade={trade}
-            bids={trade.bids}
-            companies={companies}
-            canEdit={canEdit}
-            expanded={expandedIds.has(trade.id)}
-            onToggle={() => toggleTrade(trade.id)}
-          />
-        ))}
+        {canReorder ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={visible.map(({ trade }) => trade.id)} strategy={verticalListSortingStrategy}>
+              {visible.map(({ trade }) => (
+                <SortableTradeRow key={trade.id} id={trade.id}>
+                  <TradeRow
+                    projectId={projectId}
+                    trade={trade}
+                    bids={trade.bids}
+                    companies={companies}
+                    canEdit={canEdit}
+                    expanded={expandedIds.has(trade.id)}
+                    onToggle={() => toggleTrade(trade.id)}
+                  />
+                </SortableTradeRow>
+              ))}
+            </SortableContext>
+          </DndContext>
+        ) : (
+          rows
+        )}
         {!visible.length && (
           <p className="py-12 text-center text-sm text-muted-foreground">
             {trades.length === 0
@@ -130,6 +217,30 @@ export function TradeList({
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+function SortableTradeRow({ id, children }: { id: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-stretch gap-1">
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="flex w-6 shrink-0 touch-none items-center justify-center rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
 }
