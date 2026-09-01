@@ -20,8 +20,14 @@ export default async function ProjectDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: project }, { data: membership }, { data: trades }, { data: companies }, { data: totalsRow }] =
-    await Promise.all([
+  const [
+    { data: project },
+    { data: membership },
+    { data: trades },
+    { data: companies },
+    { data: totalsRow },
+    { data: categories },
+  ] = await Promise.all([
       supabase
         .from("projects")
         .select("id, name, address, sqft, use_custom_trade_order")
@@ -42,6 +48,7 @@ export default async function ProjectDetailPage({
         .eq("project_id", projectId),
       supabase.from("companies").select("id, name").is("archived_at", null).order("name"),
       supabase.from("project_totals").select("grand_total").eq("project_id", projectId).maybeSingle(),
+      supabase.from("categories").select("id, name").order("name"),
     ]);
 
   if (!project) notFound();
@@ -159,7 +166,7 @@ export default async function ProjectDetailPage({
         canEdit={canEdit}
       />
 
-      {canEdit && <AddTradeForm projectId={projectId} />}
+      {canEdit && <AddTradeForm projectId={projectId} categories={categories ?? []} />}
     </div>
   );
 }

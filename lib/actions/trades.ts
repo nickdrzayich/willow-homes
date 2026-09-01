@@ -2,11 +2,21 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { findOrCreateCategory } from "@/lib/category-helpers";
 
 export async function createTrade(projectId: string, formData: FormData) {
   const supabase = await createClient();
-  const name = String(formData.get("name") ?? "").trim();
+  const categoryId = String(formData.get("categoryId") ?? "").trim();
+  const newCategoryName = String(formData.get("categoryName") ?? "").trim();
   const qtyRaw = String(formData.get("qty") ?? "").trim();
+
+  let name: string | null = null;
+  if (categoryId) {
+    const { data } = await supabase.from("categories").select("name").eq("id", categoryId).maybeSingle();
+    name = data?.name ?? null;
+  } else if (newCategoryName) {
+    name = await findOrCreateCategory(supabase, newCategoryName);
+  }
 
   if (!name) return;
 
