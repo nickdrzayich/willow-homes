@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { ChevronDown, FileText, Pencil, Plus, Star, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { BidPill } from "@/components/trades/bid-pill";
@@ -26,6 +26,9 @@ export interface TradeBid {
   status: BidStatus;
   is_winner: boolean;
   notes: string | null;
+  file_path: string | null;
+  file_name: string | null;
+  file_url: string | null;
 }
 
 const STATUS_ORDER: BidStatus[] = ["actual", "estimate", "sent"];
@@ -154,6 +157,17 @@ export function TradeRow({
                     <p className="truncate text-xs text-muted-foreground">{bid.notes}</p>
                   )}
                 </div>
+                {bid.file_url && (
+                  <a
+                    href={bid.file_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={bid.file_name ?? "View bid file"}
+                    className="shrink-0 text-muted-foreground hover:text-foreground"
+                  >
+                    <FileText className="h-4 w-4" />
+                  </a>
+                )}
                 <BidPill status={bid.status} />
                 <p className="w-24 text-right text-sm font-medium sm:w-28">
                   {formatCurrencyPrecise(bid.amount)}

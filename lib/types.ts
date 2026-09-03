@@ -278,6 +278,8 @@ export interface Database {
           status: BidStatus;
           is_winner: boolean;
           notes: string | null;
+          file_path: string | null;
+          file_name: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -290,6 +292,8 @@ export interface Database {
           status?: BidStatus;
           is_winner?: boolean;
           notes?: string | null;
+          file_path?: string | null;
+          file_name?: string | null;
           created_by?: string | null;
         };
         Update: {
@@ -298,6 +302,8 @@ export interface Database {
           status?: BidStatus;
           is_winner?: boolean;
           notes?: string | null;
+          file_path?: string | null;
+          file_name?: string | null;
         };
         Relationships: [
           {

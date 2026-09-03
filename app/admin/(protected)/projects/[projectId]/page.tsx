@@ -43,7 +43,7 @@ export default async function ProjectDetailPage({
       supabase
         .from("trades")
         .select(
-          "id, name, qty, sort_order, description, trade_images(id, storage_path, file_name, sort_order), bids(id, company_id, amount, status, is_winner, notes, company:companies(name, company_contacts(id, name, phone, email)))"
+          "id, name, qty, sort_order, description, trade_images(id, storage_path, file_name, sort_order), bids(id, company_id, amount, status, is_winner, notes, file_path, file_name, company:companies(name, company_contacts(id, name, phone, email)))"
         )
         .eq("project_id", projectId),
       supabase.from("companies").select("id, name").is("archived_at", null).order("name"),
@@ -63,6 +63,15 @@ export default async function ProjectDetailPage({
     const { data: signedUrls } = await supabase.storage.from("trade-images").createSignedUrls(allImagePaths, 3600);
     for (const entry of signedUrls ?? []) {
       if (entry.path && entry.signedUrl) signedUrlByPath.set(entry.path, entry.signedUrl);
+    }
+  }
+
+  const bidFilePaths = sortedTrades.flatMap((t) => (t.bids ?? []).flatMap((b) => (b.file_path ? [b.file_path] : [])));
+  const bidFileUrlByPath = new Map<string, string>();
+  if (bidFilePaths.length > 0) {
+    const { data: signedUrls } = await supabase.storage.from("bid-files").createSignedUrls(bidFilePaths, 3600);
+    for (const entry of signedUrls ?? []) {
+      if (entry.path && entry.signedUrl) bidFileUrlByPath.set(entry.path, entry.signedUrl);
     }
   }
 
@@ -160,6 +169,9 @@ export default async function ProjectDetailPage({
             status: b.status,
             is_winner: b.is_winner,
             notes: b.notes,
+            file_path: b.file_path,
+            file_name: b.file_name,
+            file_url: b.file_path ? (bidFileUrlByPath.get(b.file_path) ?? null) : null,
           })),
         }))}
         companies={companies ?? []}

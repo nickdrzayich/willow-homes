@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
-import { upsertBid } from "@/lib/actions/bids";
+import { FileText, X } from "lucide-react";
+import { upsertBid, removeBidFile } from "@/lib/actions/bids";
+import { createClient } from "@/lib/supabase/client";
+import { sanitizeFileName } from "@/lib/utils";
 import { CompanyPicker, type CompanyOption } from "@/components/companies/company-picker";
+import { FileDropInput } from "@/components/expenses/file-drop-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +34,12 @@ export interface EditableBid {
   amount: number | null;
   status: BidStatus;
   notes: string | null;
+  file_path: string | null;
+  file_name: string | null;
+  file_url: string | null;
 }
+
+const BUCKET = "bid-files";
 
 export function BidForm({
   projectId,
@@ -46,10 +55,17 @@ export function BidForm({
   trigger: ReactElement;
 }) {
   const [open, setOpen] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const action = upsertBid.bind(null, projectId, tradeId);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setUploadError(null);
+      }}
+    >
       <DialogTrigger render={trigger} />
       <DialogContent>
         <DialogHeader>
@@ -57,7 +73,28 @@ export function BidForm({
         </DialogHeader>
         <form
           action={async (formData) => {
+            setUploadError(null);
             const scrollY = window.scrollY;
+            const file = formData.get("bidFile");
+            formData.delete("bidFile");
+
+            if (file instanceof File && file.size > 0) {
+              const bidId = bid?.id ?? crypto.randomUUID();
+              const path = `${projectId}/${bidId}/${sanitizeFileName(file.name)}`;
+              const { error } = await createClient()
+                .storage.from(BUCKET)
+                .upload(path, file, { upsert: true });
+
+              if (error) {
+                setUploadError(error.message);
+                return;
+              }
+
+              formData.set("id", bidId);
+              formData.set("filePath", path);
+              formData.set("fileName", file.name);
+            }
+
             await action(formData);
             setOpen(false);
             requestAnimationFrame(() => window.scrollTo({ top: scrollY }));
@@ -104,6 +141,33 @@ export function BidForm({
             <Label htmlFor="notes">Notes</Label>
             <Textarea id="notes" name="notes" defaultValue={bid?.notes ?? ""} rows={3} />
           </div>
+          <div className="flex flex-col gap-2">
+            <Label>Bid file (PDF or image)</Label>
+            {bid?.file_path && bid.file_url && (
+              <div className="flex items-center justify-between gap-2 rounded-lg border bg-background/60 p-2">
+                <a
+                  href={bid.file_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex min-w-0 items-center gap-1.5 text-sm text-primary hover:underline"
+                >
+                  <FileText className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{bid.file_name ?? "View file"}</span>
+                </a>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0"
+                  onClick={() => removeBidFile(projectId, bid.id, bid.file_path!)}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
+            <FileDropInput name="bidFile" accept="image/*,.pdf" />
+          </div>
+          {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
           <Button type="submit">{bid ? "Save bid" : "Add bid"}</Button>
         </form>
       </DialogContent>

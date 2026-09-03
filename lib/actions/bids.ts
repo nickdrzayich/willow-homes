@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { findOrCreateCompany } from "@/lib/company-helpers";
-import type { BidStatus } from "@/lib/types";
+import type { BidStatus, Database } from "@/lib/types";
+
+type BidUpdate = Database["public"]["Tables"]["bids"]["Update"];
+
+const BID_FILES_BUCKET = "bid-files";
 
 export async function upsertBid(
   projectId: string,
@@ -21,11 +25,13 @@ export async function upsertBid(
   const amountRaw = String(formData.get("amount") ?? "").trim();
   const status = String(formData.get("status") ?? "sent") as BidStatus;
   const notes = String(formData.get("notes") ?? "").trim() || null;
+  const filePath = String(formData.get("filePath") ?? "").trim() || null;
+  const fileName = String(formData.get("fileName") ?? "").trim() || null;
 
   const resolvedCompanyId =
     companyId ?? (newCompanyName ? await findOrCreateCompany(supabase, newCompanyName) : null);
 
-  const fields = {
+  const fields: BidUpdate = {
     company_id: resolvedCompanyId,
     amount: amountRaw ? Number(amountRaw) : null,
     status,
@@ -33,16 +39,52 @@ export async function upsertBid(
   };
 
   if (bidId) {
+    if (filePath) {
+      const { data: existing } = await supabase
+        .from("bids")
+        .select("file_path")
+        .eq("id", bidId)
+        .single();
+
+      if (existing?.file_path && existing.file_path !== filePath) {
+        await supabase.storage.from(BID_FILES_BUCKET).remove([existing.file_path]);
+      }
+
+      fields.file_path = filePath;
+      fields.file_name = fileName;
+    }
+
     await supabase.from("bids").update(fields).eq("id", bidId);
   } else {
-    await supabase.from("bids").insert({ ...fields, trade_id: tradeId, created_by: user?.id });
+    const id = String(formData.get("id") ?? "").trim() || crypto.randomUUID();
+    await supabase.from("bids").insert({
+      id,
+      ...fields,
+      file_path: filePath,
+      file_name: fileName,
+      trade_id: tradeId,
+      created_by: user?.id,
+    });
   }
 
   revalidatePath(`/admin/projects/${projectId}`);
 }
 
+export async function removeBidFile(projectId: string, bidId: string, filePath: string) {
+  const supabase = await createClient();
+  await supabase.storage.from(BID_FILES_BUCKET).remove([filePath]);
+  await supabase.from("bids").update({ file_path: null, file_name: null }).eq("id", bidId);
+  revalidatePath(`/admin/projects/${projectId}`);
+}
+
 export async function deleteBid(projectId: string, bidId: string) {
   const supabase = await createClient();
+
+  const { data: existing } = await supabase.from("bids").select("file_path").eq("id", bidId).single();
+  if (existing?.file_path) {
+    await supabase.storage.from(BID_FILES_BUCKET).remove([existing.file_path]);
+  }
+
   await supabase.from("bids").delete().eq("id", bidId);
   revalidatePath(`/admin/projects/${projectId}`);
 }
