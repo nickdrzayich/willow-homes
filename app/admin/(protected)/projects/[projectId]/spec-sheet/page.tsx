@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PrintButton } from "@/components/expenses/print-button";
+import { isPdfFileName } from "@/lib/utils";
 
 export default async function SpecSheetPage({
   params,
@@ -70,7 +71,21 @@ export default async function SpecSheetPage({
                   <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-4">
                     {images.map(
                       (image) =>
-                        image.url && (
+                        image.url &&
+                        (isPdfFileName(image.file_name) ? (
+                          <a
+                            key={image.id}
+                            href={image.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-md border bg-muted p-1"
+                          >
+                            <FileText className="h-6 w-6 text-muted-foreground" />
+                            <span className="w-full truncate text-center text-[9px] text-muted-foreground">
+                              {image.file_name}
+                            </span>
+                          </a>
+                        ) : (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             key={image.id}
@@ -78,7 +93,7 @@ export default async function SpecSheetPage({
                             alt={image.file_name}
                             className="aspect-square w-full rounded-md border object-cover"
                           />
-                        )
+                        ))
                     )}
                   </div>
                 )}

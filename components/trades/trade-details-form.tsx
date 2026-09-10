@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
-import { X } from "lucide-react";
+import { FileText, X } from "lucide-react";
 import { saveTradeDetails, deleteTradeImage } from "@/lib/actions/trades";
 import { createClient } from "@/lib/supabase/client";
-import { sanitizeFileName } from "@/lib/utils";
+import { isPdfFileName, sanitizeFileName } from "@/lib/utils";
 import { ImageDropInput } from "@/components/trades/image-drop-input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -88,13 +88,27 @@ export function TradeDetailsForm({
         >
           {images.length > 0 && (
             <div className="flex flex-col gap-2">
-              <Label>Photos</Label>
+              <Label>Photos & files</Label>
               <div className="flex flex-wrap gap-2">
                 {images.map((image) => (
                   <div key={image.id} className="group relative h-16 w-16 overflow-hidden rounded-md border">
-                    {image.url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={image.url} alt={image.file_name} className="h-full w-full object-cover" />
+                    {image.url && isPdfFileName(image.file_name) ? (
+                      <a
+                        href={image.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-full w-full flex-col items-center justify-center gap-0.5 bg-muted p-1"
+                      >
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                        <span className="w-full truncate text-center text-[9px] text-muted-foreground">
+                          {image.file_name}
+                        </span>
+                      </a>
+                    ) : (
+                      image.url && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={image.url} alt={image.file_name} className="h-full w-full object-cover" />
+                      )
                     )}
                     <Button
                       type="button"
@@ -110,7 +124,7 @@ export function TradeDetailsForm({
             </div>
           )}
           <div className="flex flex-col gap-2">
-            <Label>Add photos</Label>
+            <Label>Add photos or PDFs</Label>
             <ImageDropInput files={newFiles} onChange={setNewFiles} />
           </div>
           <div className="flex flex-col gap-2">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, type DragEvent } from "react";
-import { UploadCloud, X } from "lucide-react";
+import { FileText, UploadCloud, X } from "lucide-react";
+import { isPdfFileName } from "@/lib/utils";
 
 export function ImageDropInput({
   files,
@@ -41,7 +42,7 @@ export function ImageDropInput({
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.pdf"
           multiple
           className="hidden"
           onChange={(e) => {
@@ -51,15 +52,24 @@ export function ImageDropInput({
         />
         <UploadCloud className="h-5 w-5 text-muted-foreground" />
         <p className="text-sm">
-          <span className="font-medium text-primary">Click to add photos</span> or drag and drop
+          <span className="font-medium text-primary">Click to add photos or PDFs</span> or drag and drop
         </p>
       </div>
       {files.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {files.map((file, i) => (
             <div key={i} className="group relative h-16 w-16 overflow-hidden rounded-md border">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previews[i]} alt={file.name} className="h-full w-full object-cover" />
+              {isPdfFileName(file.name) ? (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-0.5 bg-muted p-1">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <span className="w-full truncate text-center text-[9px] text-muted-foreground">
+                    {file.name}
+                  </span>
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={previews[i]} alt={file.name} className="h-full w-full object-cover" />
+              )}
               <button
                 type="button"
                 onClick={() => onChange(files.filter((_, fi) => fi !== i))}

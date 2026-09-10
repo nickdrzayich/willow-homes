@@ -1,5 +1,7 @@
+import { FileText } from "lucide-react";
 import { TradeDetailsForm, type TradeImage } from "@/components/trades/trade-details-form";
 import { Button } from "@/components/ui/button";
+import { isPdfFileName } from "@/lib/utils";
 
 export function TradeDetails({
   projectId,
@@ -41,7 +43,21 @@ export function TradeDetails({
             <div className="flex flex-wrap gap-2">
               {images.map(
                 (image) =>
-                  image.url && (
+                  image.url &&
+                  (isPdfFileName(image.file_name) ? (
+                    <a
+                      key={image.id}
+                      href={image.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-md border bg-muted p-1"
+                    >
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <span className="w-full truncate text-center text-[9px] text-muted-foreground">
+                        {image.file_name}
+                      </span>
+                    </a>
+                  ) : (
                     <a key={image.id} href={image.url} target="_blank" rel="noreferrer">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -50,7 +66,7 @@ export function TradeDetails({
                         className="h-16 w-16 rounded-md border object-cover"
                       />
                     </a>
-                  )
+                  ))
               )}
             </div>
           )}
