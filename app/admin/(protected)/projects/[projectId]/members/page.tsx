@@ -1,17 +1,9 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { inviteMember, updateMemberRole, removeMember } from "@/lib/actions/members";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { InviteMemberForm } from "@/components/members/invite-member-form";
+import { MemberRoleForm, RemoveMemberButton } from "@/components/members/member-role-actions";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -67,26 +59,7 @@ export default async function ProjectMembersPage({
             <CardTitle className="text-base">Invite someone</CardTitle>
           </CardHeader>
           <CardContent>
-            <form action={inviteAction} className="flex flex-wrap items-end gap-3">
-              <div className="flex flex-1 min-w-[200px] flex-col gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" required />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="role">Role</Label>
-                <Select name="role" defaultValue="viewer">
-                  <SelectTrigger id="role" className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="viewer">Viewer</SelectItem>
-                    <SelectItem value="editor">Editor</SelectItem>
-                    <SelectItem value="owner">Owner</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button type="submit">Invite</Button>
-            </form>
+            <InviteMemberForm action={inviteAction} />
           </CardContent>
         </Card>
       )}
@@ -106,35 +79,20 @@ export default async function ProjectMembersPage({
                   <Badge variant="outline">Pending</Badge>
                 )}
                 {isOwner ? (
-                  <form
+                  <MemberRoleForm
                     action={updateMemberRole.bind(null, projectId, member.id)}
-                    className="flex items-center gap-2"
-                  >
-                    <Select name="role" defaultValue={member.role}>
-                      <SelectTrigger className="w-28">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="viewer">Viewer</SelectItem>
-                        <SelectItem value="editor">Editor</SelectItem>
-                        <SelectItem value="owner">Owner</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button type="submit" variant="ghost" size="sm">
-                      Save
-                    </Button>
-                  </form>
+                    role={member.role}
+                  />
                 ) : (
                   <Badge variant="secondary" className="capitalize">
                     {member.role}
                   </Badge>
                 )}
                 {isOwner && (
-                  <form action={removeMember.bind(null, projectId, member.id)}>
-                    <Button type="submit" variant="ghost" size="sm" className="text-muted-foreground">
-                      Remove
-                    </Button>
-                  </form>
+                  <RemoveMemberButton
+                    action={removeMember.bind(null, projectId, member.id)}
+                    label={member.profile?.display_name ?? member.invited_email}
+                  />
                 )}
               </div>
             </CardContent>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { computeProjectTotals, formatCurrency } from "@/lib/calculations";
 import { acceptInvite } from "@/lib/actions/members";
+import { AcceptInviteButton } from "@/components/members/accept-invite-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,11 +55,7 @@ export default async function ProjectsPage() {
                     You&apos;ve been invited to <strong>{invite.project.name}</strong> as{" "}
                     <span className="capitalize">{invite.role}</span>.
                   </p>
-                  <form action={acceptInvite.bind(null, invite.project.id)}>
-                    <Button type="submit" size="sm">
-                      Accept
-                    </Button>
-                  </form>
+                  <AcceptInviteButton action={acceptInvite.bind(null, invite.project.id)} />
                 </CardContent>
               </Card>
             ) : null
