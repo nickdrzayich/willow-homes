@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
+import { toast } from "sonner";
 import { createScheduleDay, updateScheduleDay } from "@/lib/actions/build-schedule";
 import { TaskListFields } from "@/components/shared/task-list-fields";
 import { Button } from "@/components/ui/button";
@@ -41,8 +42,13 @@ export function ScheduleDayForm({
         </DialogHeader>
         <form
           action={async (formData) => {
-            await action(formData);
-            setOpen(false);
+            try {
+              await action(formData);
+              toast.success(day ? "Day saved" : "Day added");
+              setOpen(false);
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Could not save");
+            }
           }}
           className="flex flex-col gap-4"
         >

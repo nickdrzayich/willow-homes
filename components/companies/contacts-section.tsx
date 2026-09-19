@@ -1,3 +1,6 @@
+"use client";
+
+import { toast } from "sonner";
 import { Mail, Phone, Pencil, Trash2, UserPlus, User } from "lucide-react";
 import { ContactForm } from "@/components/companies/contact-form";
 import { deleteContact } from "@/lib/actions/contacts";
@@ -14,22 +17,26 @@ export interface Contact {
 export function ContactsSection({
   companyId,
   contacts,
+  canEdit,
 }: {
   companyId: string;
   contacts: Contact[];
+  canEdit: boolean;
 }) {
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-medium text-muted-foreground">Contacts</h2>
-        <ContactForm
-          companyId={companyId}
-          trigger={
-            <Button type="button" variant="outline" size="sm">
-              <UserPlus className="h-3.5 w-3.5" /> Add contact
-            </Button>
-          }
-        />
+        {canEdit && (
+          <ContactForm
+            companyId={companyId}
+            trigger={
+              <Button type="button" variant="outline" size="sm">
+                <UserPlus className="h-3.5 w-3.5" /> Add contact
+              </Button>
+            }
+          />
+        )}
       </div>
 
       {!contacts.length ? (
@@ -61,22 +68,36 @@ export function ContactsSection({
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                <ContactForm
-                  companyId={companyId}
-                  contact={contact}
-                  trigger={
-                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                  }
-                />
-                <form action={deleteContact.bind(null, companyId, contact.id)}>
-                  <Button type="submit" variant="ghost" size="icon" className="h-8 w-8">
+              {canEdit && (
+                <div className="flex items-center gap-1">
+                  <ContactForm
+                    companyId={companyId}
+                    contact={contact}
+                    trigger={
+                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    }
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={async () => {
+                      if (!confirm(`Delete contact "${contact.name}"?`)) return;
+                      try {
+                        await deleteContact(companyId, contact.id);
+                        toast.success("Contact deleted");
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : "Could not delete contact");
+                      }
+                    }}
+                  >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
-                </form>
-              </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

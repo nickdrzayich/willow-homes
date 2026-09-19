@@ -1,5 +1,6 @@
 import { Plus, Pencil, CalendarDays } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { canEditSharedData } from "@/lib/auth";
 import { ScheduleDayForm } from "@/components/build-schedule/schedule-day-form";
 import { DeleteScheduleDayButton } from "@/components/build-schedule/delete-schedule-day-button";
 import { Button } from "@/components/ui/button";
@@ -7,10 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default async function BuildSchedulePage() {
   const supabase = await createClient();
-  const { data: days } = await supabase
-    .from("build_schedule_template")
-    .select("id, day_number, tasks, notes")
-    .order("day_number");
+  const [{ data: days }, canEdit] = await Promise.all([
+    supabase.from("build_schedule_template").select("id, day_number, tasks, notes").order("day_number"),
+    canEditSharedData(supabase),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -22,13 +23,15 @@ export default async function BuildSchedulePage() {
             all projects &mdash; not tied to real dates.
           </p>
         </div>
-        <ScheduleDayForm
-          trigger={
-            <Button type="button">
-              <Plus className="h-4 w-4" /> Add day
-            </Button>
-          }
-        />
+        {canEdit && (
+          <ScheduleDayForm
+            trigger={
+              <Button type="button">
+                <Plus className="h-4 w-4" /> Add day
+              </Button>
+            }
+          />
+        )}
       </div>
 
       {!days?.length ? (
@@ -54,17 +57,19 @@ export default async function BuildSchedulePage() {
                   )}
                   {day.notes && <p className="whitespace-pre-line text-sm text-muted-foreground">{day.notes}</p>}
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <ScheduleDayForm
-                    day={day}
-                    trigger={
-                      <Button type="button" variant="ghost" size="icon-sm">
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                    }
-                  />
-                  <DeleteScheduleDayButton dayId={day.id} dayNumber={day.day_number} />
-                </div>
+                {canEdit && (
+                  <div className="flex shrink-0 items-center gap-1">
+                    <ScheduleDayForm
+                      day={day}
+                      trigger={
+                        <Button type="button" variant="ghost" size="icon-sm">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      }
+                    />
+                    <DeleteScheduleDayButton dayId={day.id} dayNumber={day.day_number} />
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

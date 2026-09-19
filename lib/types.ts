@@ -562,6 +562,10 @@ export interface Database {
         Args: { p_old_name: string; p_new_name: string };
         Returns: void;
       };
+      is_editor_anywhere: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
     };
   };
 }

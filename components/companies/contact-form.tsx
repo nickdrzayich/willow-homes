@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
+import { toast } from "sonner";
 import { addContact, updateContact } from "@/lib/actions/contacts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,8 +44,13 @@ export function ContactForm({
         </DialogHeader>
         <form
           action={async (formData) => {
-            await action(formData);
-            setOpen(false);
+            try {
+              await action(formData);
+              toast.success(contact ? "Contact saved" : "Contact added");
+              setOpen(false);
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Could not save contact");
+            }
           }}
           className="flex flex-col gap-4"
         >

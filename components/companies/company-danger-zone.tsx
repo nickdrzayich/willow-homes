@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { archiveCompany, unarchiveCompany, deleteCompany } from "@/lib/actions/companies";
 import { Button } from "@/components/ui/button";
 
@@ -25,11 +26,20 @@ export function CompanyDangerZone({
               : "Hides them from the active directory and bid picker without deleting their bid history."}
           </p>
         </div>
-        <form action={(archived ? unarchiveCompany : archiveCompany).bind(null, companyId)}>
-          <Button type="submit" variant="outline">
-            {archived ? "Unarchive" : "Archive"}
-          </Button>
-        </form>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={async () => {
+            try {
+              await (archived ? unarchiveCompany : archiveCompany)(companyId);
+              toast.success(archived ? "Unarchived" : "Archived");
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Could not update");
+            }
+          }}
+        >
+          {archived ? "Unarchive" : "Archive"}
+        </Button>
       </div>
 
       <div className="flex items-center justify-between gap-4 border-t pt-4">

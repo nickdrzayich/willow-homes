@@ -1,10 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
-import { AddCategoryDialog, RenameCategoryDialog } from "@/components/categories/category-dialogs";
+import { canEditSharedData } from "@/lib/auth";
+import {
+  AddCategoryDialog,
+  RenameCategoryDialog,
+  DeleteCategoryButton,
+} from "@/components/categories/category-dialogs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default async function CategoriesPage() {
   const supabase = await createClient();
-  const { data: categories } = await supabase.from("categories").select("id, name").order("name");
+  const [{ data: categories }, canEdit] = await Promise.all([
+    supabase.from("categories").select("id, name").order("name"),
+    canEditSharedData(supabase),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -16,7 +24,7 @@ export default async function CategoriesPage() {
             subcontractors. Renaming one updates it everywhere it&apos;s already used.
           </p>
         </div>
-        <AddCategoryDialog />
+        {canEdit && <AddCategoryDialog />}
       </div>
 
       <Table>
@@ -31,7 +39,12 @@ export default async function CategoriesPage() {
             <TableRow key={category.id}>
               <TableCell>{category.name}</TableCell>
               <TableCell className="text-right">
-                <RenameCategoryDialog name={category.name} />
+                {canEdit && (
+                  <div className="flex justify-end gap-1">
+                    <RenameCategoryDialog name={category.name} />
+                    <DeleteCategoryButton id={category.id} name={category.name} />
+                  </div>
+                )}
               </TableCell>
             </TableRow>
           ))}

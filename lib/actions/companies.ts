@@ -32,7 +32,11 @@ export async function updateCompany(companyId: string, formData: FormData) {
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const categoryNames = formData.getAll("categories").map(String);
 
-  await supabase.from("companies").update({ name, notes, category_names: categoryNames }).eq("id", companyId);
+  const { error } = await supabase
+    .from("companies")
+    .update({ name, notes, category_names: categoryNames })
+    .eq("id", companyId);
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/subcontractors");
   revalidatePath(`/admin/subcontractors/${companyId}`);
@@ -40,14 +44,19 @@ export async function updateCompany(companyId: string, formData: FormData) {
 
 export async function archiveCompany(companyId: string) {
   const supabase = await createClient();
-  await supabase.from("companies").update({ archived_at: new Date().toISOString() }).eq("id", companyId);
+  const { error } = await supabase
+    .from("companies")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", companyId);
+  if (error) throw new Error(error.message);
   revalidatePath("/admin/subcontractors");
   revalidatePath(`/admin/subcontractors/${companyId}`);
 }
 
 export async function unarchiveCompany(companyId: string) {
   const supabase = await createClient();
-  await supabase.from("companies").update({ archived_at: null }).eq("id", companyId);
+  const { error } = await supabase.from("companies").update({ archived_at: null }).eq("id", companyId);
+  if (error) throw new Error(error.message);
   revalidatePath("/admin/subcontractors");
   revalidatePath(`/admin/subcontractors/${companyId}`);
 }
@@ -57,7 +66,8 @@ export async function unarchiveCompany(companyId: string) {
 // only shows the delete action in that case; archiving covers everything else.
 export async function deleteCompany(companyId: string) {
   const supabase = await createClient();
-  await supabase.from("companies").delete().eq("id", companyId);
+  const { error } = await supabase.from("companies").delete().eq("id", companyId);
+  if (error) throw new Error(error.message);
   revalidatePath("/admin/subcontractors");
   redirect("/admin/subcontractors");
 }

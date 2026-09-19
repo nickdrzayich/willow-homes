@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil } from "lucide-react";
-import { createCategory, renameCategory } from "@/lib/actions/categories";
+import { toast } from "sonner";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { createCategory, renameCategory, deleteCategory } from "@/lib/actions/categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,8 +33,13 @@ export function AddCategoryDialog() {
         </DialogHeader>
         <form
           action={async (formData) => {
-            await createCategory(formData);
-            setOpen(false);
+            try {
+              await createCategory(formData);
+              toast.success("Category added");
+              setOpen(false);
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Could not add category");
+            }
           }}
           className="flex flex-col gap-4"
         >
@@ -67,8 +73,13 @@ export function RenameCategoryDialog({ name }: { name: string }) {
         </DialogHeader>
         <form
           action={async (formData) => {
-            await action(formData);
-            setOpen(false);
+            try {
+              await action(formData);
+              toast.success("Category renamed");
+              setOpen(false);
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Could not rename category");
+            }
           }}
           className="flex flex-col gap-4"
         >
@@ -83,5 +94,26 @@ export function RenameCategoryDialog({ name }: { name: string }) {
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function DeleteCategoryButton({ id, name }: { id: string; name: string }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-sm"
+      onClick={async () => {
+        if (!confirm(`Delete "${name}"?`)) return;
+        try {
+          await deleteCategory(id);
+          toast.success("Category deleted");
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Could not delete category");
+        }
+      }}
+    >
+      <Trash2 className="h-3.5 w-3.5" />
+    </Button>
   );
 }

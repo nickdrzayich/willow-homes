@@ -19,15 +19,17 @@ export async function addContact(companyId: string, formData: FormData) {
     .limit(1)
     .maybeSingle();
 
-  await supabase.from("company_contacts").insert({
+  const { error } = await supabase.from("company_contacts").insert({
     company_id: companyId,
     name,
     phone,
     email,
     sort_order: (existing?.sort_order ?? 0) + 1,
   });
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/subcontractors/${companyId}`);
+  revalidatePath("/admin/subcontractors");
 }
 
 export async function updateContact(companyId: string, contactId: string, formData: FormData) {
@@ -36,12 +38,16 @@ export async function updateContact(companyId: string, contactId: string, formDa
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const email = String(formData.get("email") ?? "").trim() || null;
 
-  await supabase.from("company_contacts").update({ name, phone, email }).eq("id", contactId);
+  const { error } = await supabase.from("company_contacts").update({ name, phone, email }).eq("id", contactId);
+  if (error) throw new Error(error.message);
   revalidatePath(`/admin/subcontractors/${companyId}`);
+  revalidatePath("/admin/subcontractors");
 }
 
 export async function deleteContact(companyId: string, contactId: string) {
   const supabase = await createClient();
-  await supabase.from("company_contacts").delete().eq("id", contactId);
+  const { error } = await supabase.from("company_contacts").delete().eq("id", contactId);
+  if (error) throw new Error(error.message);
   revalidatePath(`/admin/subcontractors/${companyId}`);
+  revalidatePath("/admin/subcontractors");
 }

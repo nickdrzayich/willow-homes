@@ -12,11 +12,12 @@ export async function createScheduleDay(formData: FormData) {
 
   if (!dayNumberRaw) return;
 
-  await supabase.from("build_schedule_template").insert({
+  const { error } = await supabase.from("build_schedule_template").insert({
     day_number: Number(dayNumberRaw),
     tasks,
     notes,
   });
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/build-schedule");
 }
@@ -28,7 +29,7 @@ export async function updateScheduleDay(dayId: string, formData: FormData) {
   const tasks = formData.getAll("tasks").map(String).map((t) => t.trim()).filter(Boolean);
   const notes = String(formData.get("notes") ?? "").trim() || null;
 
-  await supabase
+  const { error } = await supabase
     .from("build_schedule_template")
     .update({
       day_number: dayNumberRaw ? Number(dayNumberRaw) : undefined,
@@ -36,12 +37,14 @@ export async function updateScheduleDay(dayId: string, formData: FormData) {
       notes,
     })
     .eq("id", dayId);
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/build-schedule");
 }
 
 export async function deleteScheduleDay(dayId: string) {
   const supabase = await createClient();
-  await supabase.from("build_schedule_template").delete().eq("id", dayId);
+  const { error } = await supabase.from("build_schedule_template").delete().eq("id", dayId);
+  if (error) throw new Error(error.message);
   revalidatePath("/admin/build-schedule");
 }
