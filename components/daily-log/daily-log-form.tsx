@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
+import { toast } from "sonner";
 import { createLogEntry, updateLogEntry } from "@/lib/actions/daily-log";
 import { TaskListFields } from "@/components/shared/task-list-fields";
 import { Button } from "@/components/ui/button";
@@ -32,13 +33,20 @@ export function DailyLogForm({
   trigger: ReactElement;
 }) {
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const action = entry
     ? updateLogEntry.bind(null, projectId, entry.id)
     : createLogEntry.bind(null, projectId);
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setError(null);
+      }}
+    >
       <DialogTrigger render={trigger} />
       <DialogContent>
         <DialogHeader>
@@ -46,8 +54,13 @@ export function DailyLogForm({
         </DialogHeader>
         <form
           action={async (formData) => {
-            await action(formData);
-            setOpen(false);
+            try {
+              await action(formData);
+              toast.success(entry ? "Entry saved" : "Entry added");
+              setOpen(false);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "Could not save");
+            }
           }}
           className="flex flex-col gap-4"
         >
@@ -60,6 +73,7 @@ export function DailyLogForm({
             <Label htmlFor="notes">Notes</Label>
             <Textarea id="notes" name="notes" defaultValue={entry?.notes ?? ""} rows={3} />
           </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit">{entry ? "Save entry" : "Add entry"}</Button>
         </form>
       </DialogContent>

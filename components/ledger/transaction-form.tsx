@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
+import { toast } from "sonner";
 import { createTransaction, updateTransaction } from "@/lib/actions/transactions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,13 +43,20 @@ export function TransactionForm({
   trigger: ReactElement;
 }) {
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const action = transaction
     ? updateTransaction.bind(null, projectId, transaction.id)
     : createTransaction.bind(null, projectId);
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setError(null);
+      }}
+    >
       <DialogTrigger render={trigger} />
       <DialogContent>
         <DialogHeader>
@@ -56,8 +64,13 @@ export function TransactionForm({
         </DialogHeader>
         <form
           action={async (formData) => {
-            await action(formData);
-            setOpen(false);
+            try {
+              await action(formData);
+              toast.success(transaction ? "Entry saved" : "Entry added");
+              setOpen(false);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "Could not save");
+            }
           }}
           className="flex flex-col gap-4"
         >
@@ -107,6 +120,7 @@ export function TransactionForm({
               placeholder="e.g. Mobilization deposit, Kyles Cabs payment"
             />
           </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit">{transaction ? "Save entry" : "Add entry"}</Button>
         </form>
       </DialogContent>

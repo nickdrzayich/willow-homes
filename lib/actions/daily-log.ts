@@ -15,13 +15,19 @@ export async function createLogEntry(projectId: string, formData: FormData) {
 
   if (!logDate) return;
 
-  await supabase.from("daily_log_entries").insert({
+  const { error } = await supabase.from("daily_log_entries").insert({
     project_id: projectId,
     log_date: logDate,
     tasks,
     notes,
     created_by: user?.id,
   });
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("You already have an entry for this date -- edit it instead of adding a new one.");
+    }
+    throw new Error(error.message);
+  }
 
   revalidatePath(`/admin/projects/${projectId}/daily-log`);
 }
@@ -33,7 +39,7 @@ export async function updateLogEntry(projectId: string, entryId: string, formDat
   const tasks = formData.getAll("tasks").map(String).map((t) => t.trim()).filter(Boolean);
   const notes = String(formData.get("notes") ?? "").trim() || null;
 
-  await supabase
+  const { error } = await supabase
     .from("daily_log_entries")
     .update({
       log_date: logDate || undefined,
@@ -41,12 +47,19 @@ export async function updateLogEntry(projectId: string, entryId: string, formDat
       notes,
     })
     .eq("id", entryId);
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("You already have an entry for this date -- edit that one instead.");
+    }
+    throw new Error(error.message);
+  }
 
   revalidatePath(`/admin/projects/${projectId}/daily-log`);
 }
 
 export async function deleteLogEntry(projectId: string, entryId: string) {
   const supabase = await createClient();
-  await supabase.from("daily_log_entries").delete().eq("id", entryId);
+  const { error } = await supabase.from("daily_log_entries").delete().eq("id", entryId);
+  if (error) throw new Error(error.message);
   revalidatePath(`/admin/projects/${projectId}/daily-log`);
 }

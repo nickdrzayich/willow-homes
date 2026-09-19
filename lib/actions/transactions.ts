@@ -17,7 +17,7 @@ export async function createTransaction(projectId: string, formData: FormData) {
 
   if (!amountRaw) return;
 
-  await supabase.from("account_transactions").insert({
+  const { error } = await supabase.from("account_transactions").insert({
     project_id: projectId,
     transaction_date: transactionDate || undefined,
     type,
@@ -25,6 +25,7 @@ export async function createTransaction(projectId: string, formData: FormData) {
     description,
     created_by: user?.id,
   });
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/projects/${projectId}/ledger`);
 }
@@ -37,7 +38,7 @@ export async function updateTransaction(projectId: string, transactionId: string
   const amountRaw = String(formData.get("amount") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
 
-  await supabase
+  const { error } = await supabase
     .from("account_transactions")
     .update({
       transaction_date: transactionDate || undefined,
@@ -46,12 +47,14 @@ export async function updateTransaction(projectId: string, transactionId: string
       description,
     })
     .eq("id", transactionId);
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/projects/${projectId}/ledger`);
 }
 
 export async function deleteTransaction(projectId: string, transactionId: string) {
   const supabase = await createClient();
-  await supabase.from("account_transactions").delete().eq("id", transactionId);
+  const { error } = await supabase.from("account_transactions").delete().eq("id", transactionId);
+  if (error) throw new Error(error.message);
   revalidatePath(`/admin/projects/${projectId}/ledger`);
 }
