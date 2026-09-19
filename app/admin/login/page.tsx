@@ -17,7 +17,7 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
 
   return (
     <AuthShell>
@@ -28,12 +28,21 @@ export default async function LoginPage({
         </CardHeader>
         <CardContent>
           <form action={login} className="flex flex-col gap-4">
+            {next && <input type="hidden" name="next" value={next} />}
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" name="email" type="email" required autoComplete="email" />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="/admin/forgot-password"
+                  className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 name="password"

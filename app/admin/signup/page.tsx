@@ -15,9 +15,9 @@ import {
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; confirmEmail?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, confirmEmail } = await searchParams;
 
   return (
     <AuthShell>
@@ -27,31 +27,38 @@ export default async function SignupPage({
           <CardDescription>Start tracking bids for your build.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={signup} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="displayName">Name</Label>
-              <Input id="displayName" name="displayName" autoComplete="name" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" required autoComplete="email" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                minLength={6}
-                autoComplete="new-password"
-              />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="mt-1 w-full">
-              Sign up
-            </Button>
-          </form>
+          {confirmEmail ? (
+            <p className="text-sm text-muted-foreground">
+              Almost there -- we sent a confirmation link to your email. Click it to activate your
+              account, then log in.
+            </p>
+          ) : (
+            <form action={signup} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="displayName">Name</Label>
+                <Input id="displayName" name="displayName" autoComplete="name" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" required autoComplete="email" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                />
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="mt-1 w-full">
+                Sign up
+              </Button>
+            </form>
+          )}
           <p className="mt-5 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link href="/admin/login" className="font-medium text-primary underline-offset-4 hover:underline">
