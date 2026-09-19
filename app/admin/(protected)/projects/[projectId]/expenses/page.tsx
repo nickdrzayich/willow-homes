@@ -119,7 +119,7 @@ export default async function ExpensesPage({
               />
             </div>
           )}
-          <ExpenseTable projectId={projectId} expenses={expenses} />
+          <ExpenseTable projectId={projectId} expenses={expenses} canEdit={canEdit} />
         </TabsContent>
 
         <TabsContent value="invoices" className="mt-4 flex flex-col gap-4">

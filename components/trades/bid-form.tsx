@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
+import { toast } from "sonner";
 import { FileText, X } from "lucide-react";
 import { upsertBid, removeBidFile } from "@/lib/actions/bids";
 import { createClient } from "@/lib/supabase/client";
@@ -95,9 +96,14 @@ export function BidForm({
               formData.set("fileName", file.name);
             }
 
-            await action(formData);
-            setOpen(false);
-            requestAnimationFrame(() => window.scrollTo({ top: scrollY }));
+            try {
+              await action(formData);
+              toast.success(bid ? "Bid saved" : "Bid added");
+              setOpen(false);
+              requestAnimationFrame(() => window.scrollTo({ top: scrollY }));
+            } catch (err) {
+              setUploadError(err instanceof Error ? err.message : "Could not save bid");
+            }
           }}
           className="flex flex-col gap-4"
         >
@@ -159,7 +165,14 @@ export function BidForm({
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 shrink-0"
-                  onClick={() => removeBidFile(projectId, bid.id, bid.file_path!)}
+                  onClick={async () => {
+                    try {
+                      await removeBidFile(projectId, bid.id, bid.file_path!);
+                      toast.success("File removed");
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : "Could not remove file");
+                    }
+                  }}
                 >
                   <X className="h-3.5 w-3.5" />
                 </Button>

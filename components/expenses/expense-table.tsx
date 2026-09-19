@@ -33,7 +33,15 @@ export interface ExpenseListItem {
   invoiced: boolean;
 }
 
-export function ExpenseTable({ projectId, expenses }: { projectId: string; expenses: ExpenseListItem[] }) {
+export function ExpenseTable({
+  projectId,
+  expenses,
+  canEdit,
+}: {
+  projectId: string;
+  expenses: ExpenseListItem[];
+  canEdit: boolean;
+}) {
   const [category, setCategory] = useState<string>("all");
   const [paidStatus, setPaidStatus] = useState<string>("all");
 
@@ -123,9 +131,22 @@ export function ExpenseTable({ projectId, expenses }: { projectId: string; expen
                   </div>
                 </TableCell>
                 <TableCell>
-                  <form action={toggleExpensePaid.bind(null, projectId, expense.id, expense.paid_status)}>
-                    <button
-                      type="submit"
+                  {canEdit ? (
+                    <form action={toggleExpensePaid.bind(null, projectId, expense.id, expense.paid_status)}>
+                      <button
+                        type="submit"
+                        className={cn(
+                          "rounded-full border px-2 py-0.5 text-xs font-medium",
+                          expense.paid_status === "paid"
+                            ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                            : "border-amber-500/30 bg-amber-400/20 text-amber-700 dark:text-amber-300"
+                        )}
+                      >
+                        {expense.paid_status === "paid" ? "Paid" : "Unpaid"}
+                      </button>
+                    </form>
+                  ) : (
+                    <span
                       className={cn(
                         "rounded-full border px-2 py-0.5 text-xs font-medium",
                         expense.paid_status === "paid"
@@ -134,8 +155,8 @@ export function ExpenseTable({ projectId, expenses }: { projectId: string; expen
                       )}
                     >
                       {expense.paid_status === "paid" ? "Paid" : "Unpaid"}
-                    </button>
-                  </form>
+                    </span>
+                  )}
                 </TableCell>
                 <TableCell>
                   {expense.fileUrl ? (
@@ -152,27 +173,29 @@ export function ExpenseTable({ projectId, expenses }: { projectId: string; expen
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1">
-                    <ExpenseForm
-                      projectId={projectId}
-                      expense={expense}
-                      trigger={
-                        <Button type="button" variant="ghost" size="icon-sm">
-                          <Pencil className="h-3.5 w-3.5" />
+                  {canEdit && (
+                    <div className="flex items-center gap-1">
+                      <ExpenseForm
+                        projectId={projectId}
+                        expense={expense}
+                        trigger={
+                          <Button type="button" variant="ghost" size="icon-sm">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        }
+                      />
+                      <form
+                        action={deleteExpense.bind(null, projectId, expense.id)}
+                        onSubmit={(e) => {
+                          if (!confirm("Delete this expense?")) e.preventDefault();
+                        }}
+                      >
+                        <Button type="submit" variant="ghost" size="icon-sm">
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
-                      }
-                    />
-                    <form
-                      action={deleteExpense.bind(null, projectId, expense.id)}
-                      onSubmit={(e) => {
-                        if (!confirm("Delete this expense?")) e.preventDefault();
-                      }}
-                    >
-                      <Button type="submit" variant="ghost" size="icon-sm">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </form>
-                  </div>
+                      </form>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

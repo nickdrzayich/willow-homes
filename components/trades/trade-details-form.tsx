@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
+import { toast } from "sonner";
 import { FileText, X } from "lucide-react";
 import { saveTradeDetails, deleteTradeImage } from "@/lib/actions/trades";
 import { createClient } from "@/lib/supabase/client";
@@ -80,9 +81,14 @@ export function TradeDetailsForm({
               formData.append("imageName", file.name);
             }
 
-            await saveTradeDetails(projectId, tradeId, formData);
-            setNewFiles([]);
-            setOpen(false);
+            try {
+              await saveTradeDetails(projectId, tradeId, formData);
+              toast.success("Details saved");
+              setNewFiles([]);
+              setOpen(false);
+            } catch (err) {
+              setUploadError(err instanceof Error ? err.message : "Could not save details");
+            }
           }}
           className="flex flex-col gap-4"
         >
@@ -113,7 +119,14 @@ export function TradeDetailsForm({
                     <Button
                       type="button"
                       size="icon"
-                      onClick={() => deleteTradeImage(projectId, image.id, image.storage_path)}
+                      onClick={async () => {
+                        try {
+                          await deleteTradeImage(projectId, image.id, image.storage_path);
+                          toast.success("Photo removed");
+                        } catch (err) {
+                          toast.error(err instanceof Error ? err.message : "Could not remove");
+                        }
+                      }}
                       className="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/80"
                     >
                       <X className="h-3 w-3" />

@@ -29,7 +29,7 @@ export async function createExpense(projectId: string, formData: FormData) {
 
   const id = String(formData.get("id") ?? "").trim() || crypto.randomUUID();
 
-  await supabase.from("expenses").insert({
+  const { error } = await supabase.from("expenses").insert({
     id,
     project_id: projectId,
     expense_date: expenseDate || undefined,
@@ -42,6 +42,7 @@ export async function createExpense(projectId: string, formData: FormData) {
     invoice_file_name: invoiceFileName,
     created_by: user?.id,
   });
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/projects/${projectId}/expenses`);
 }
@@ -82,7 +83,8 @@ export async function updateExpense(projectId: string, expenseId: string, formDa
     fields.invoice_file_name = invoiceFileName;
   }
 
-  await supabase.from("expenses").update(fields).eq("id", expenseId);
+  const { error } = await supabase.from("expenses").update(fields).eq("id", expenseId);
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/projects/${projectId}/expenses`);
 }
@@ -100,7 +102,8 @@ export async function deleteExpense(projectId: string, expenseId: string) {
     await supabase.storage.from(BUCKET).remove([existing.invoice_file_path]);
   }
 
-  await supabase.from("expenses").delete().eq("id", expenseId);
+  const { error } = await supabase.from("expenses").delete().eq("id", expenseId);
+  if (error) throw new Error(error.message);
   revalidatePath(`/admin/projects/${projectId}/expenses`);
 }
 
@@ -112,13 +115,14 @@ export async function toggleExpensePaid(
   const supabase = await createClient();
   const nextStatus: ExpensePaidStatus = currentStatus === "paid" ? "unpaid" : "paid";
 
-  await supabase
+  const { error } = await supabase
     .from("expenses")
     .update({
       paid_status: nextStatus,
       paid_date: nextStatus === "paid" ? new Date().toISOString().slice(0, 10) : null,
     })
     .eq("id", expenseId);
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/projects/${projectId}/expenses`);
 }
@@ -181,7 +185,8 @@ export async function generateMonthlyInvoice(projectId: string, formData: FormDa
 
   const ids = (unbilledExpenses ?? []).map((e) => e.id);
   if (ids.length > 0) {
-    await supabase.from("expenses").update({ invoice_id: invoice.id }).in("id", ids);
+    const { error: linkError } = await supabase.from("expenses").update({ invoice_id: invoice.id }).in("id", ids);
+    if (linkError) throw new Error(linkError.message);
   }
 
   revalidatePath(`/admin/projects/${projectId}/expenses`);
@@ -196,7 +201,8 @@ export async function updateInvoiceStatus(projectId: string, invoiceId: string, 
   if (status === "sent") fields.sent_at = now;
   if (status === "paid") fields.paid_at = now;
 
-  await supabase.from("monthly_invoices").update(fields).eq("id", invoiceId);
+  const { error } = await supabase.from("monthly_invoices").update(fields).eq("id", invoiceId);
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/projects/${projectId}/expenses`);
   revalidatePath(`/admin/projects/${projectId}/expenses/invoices/${invoiceId}`);
@@ -205,8 +211,14 @@ export async function updateInvoiceStatus(projectId: string, invoiceId: string, 
 export async function deleteInvoice(projectId: string, invoiceId: string) {
   const supabase = await createClient();
 
-  await supabase.from("expenses").update({ invoice_id: null }).eq("invoice_id", invoiceId);
-  await supabase.from("monthly_invoices").delete().eq("id", invoiceId);
+  const { error: unlinkError } = await supabase
+    .from("expenses")
+    .update({ invoice_id: null })
+    .eq("invoice_id", invoiceId);
+  if (unlinkError) throw new Error(unlinkError.message);
+
+  const { error } = await supabase.from("monthly_invoices").delete().eq("id", invoiceId);
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/projects/${projectId}/expenses`);
   redirect(`/admin/projects/${projectId}/expenses`);

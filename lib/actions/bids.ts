@@ -54,10 +54,11 @@ export async function upsertBid(
       fields.file_name = fileName;
     }
 
-    await supabase.from("bids").update(fields).eq("id", bidId);
+    const { error } = await supabase.from("bids").update(fields).eq("id", bidId);
+    if (error) throw new Error(error.message);
   } else {
     const id = String(formData.get("id") ?? "").trim() || crypto.randomUUID();
-    await supabase.from("bids").insert({
+    const { error } = await supabase.from("bids").insert({
       id,
       ...fields,
       file_path: filePath,
@@ -65,6 +66,7 @@ export async function upsertBid(
       trade_id: tradeId,
       created_by: user?.id,
     });
+    if (error) throw new Error(error.message);
   }
 
   revalidatePath(`/admin/projects/${projectId}`);
@@ -73,7 +75,8 @@ export async function upsertBid(
 export async function removeBidFile(projectId: string, bidId: string, filePath: string) {
   const supabase = await createClient();
   await supabase.storage.from(BID_FILES_BUCKET).remove([filePath]);
-  await supabase.from("bids").update({ file_path: null, file_name: null }).eq("id", bidId);
+  const { error } = await supabase.from("bids").update({ file_path: null, file_name: null }).eq("id", bidId);
+  if (error) throw new Error(error.message);
   revalidatePath(`/admin/projects/${projectId}`);
 }
 
@@ -85,7 +88,8 @@ export async function deleteBid(projectId: string, bidId: string) {
     await supabase.storage.from(BID_FILES_BUCKET).remove([existing.file_path]);
   }
 
-  await supabase.from("bids").delete().eq("id", bidId);
+  const { error } = await supabase.from("bids").delete().eq("id", bidId);
+  if (error) throw new Error(error.message);
   revalidatePath(`/admin/projects/${projectId}`);
 }
 
@@ -99,10 +103,16 @@ export async function toggleWinner(
 
   // Clear any existing winner on this trade first so the "one winner per
   // trade" partial unique index never sees two winners at once.
-  await supabase.from("bids").update({ is_winner: false }).eq("trade_id", tradeId).eq("is_winner", true);
+  const { error: clearError } = await supabase
+    .from("bids")
+    .update({ is_winner: false })
+    .eq("trade_id", tradeId)
+    .eq("is_winner", true);
+  if (clearError) throw new Error(clearError.message);
 
   if (!isCurrentlyWinner) {
-    await supabase.from("bids").update({ is_winner: true }).eq("id", bidId);
+    const { error } = await supabase.from("bids").update({ is_winner: true }).eq("id", bidId);
+    if (error) throw new Error(error.message);
   }
 
   revalidatePath(`/admin/projects/${projectId}`);

@@ -22,7 +22,11 @@ export default async function InvoiceReportPage({
   const { projectId, invoiceId } = await params;
   const supabase = await createClient();
 
-  const [{ data: invoice }, { data: project }, { data: expenseRows }] = await Promise.all([
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [{ data: invoice }, { data: project }, { data: expenseRows }, { data: membership }] = await Promise.all([
     supabase
       .from("monthly_invoices")
       .select(
@@ -38,9 +42,19 @@ export default async function InvoiceReportPage({
       .eq("invoice_id", invoiceId)
       .order("category")
       .order("expense_date"),
+    supabase
+      .from("project_members")
+      .select("role")
+      .eq("project_id", projectId)
+      .eq("user_id", user?.id ?? "")
+      .eq("status", "active")
+      .maybeSingle(),
   ]);
 
   if (!invoice || !project) notFound();
+
+  const canEdit = membership?.role === "owner" || membership?.role === "editor";
+  const isOwner = membership?.role === "owner";
 
   const expensesWithUrls = await Promise.all(
     (expenseRows ?? []).map(async (e) => {
@@ -79,7 +93,13 @@ export default async function InvoiceReportPage({
         </Link>
         <div className="flex items-center gap-2">
           <PrintButton />
-          <InvoiceStatusActions projectId={projectId} invoiceId={invoiceId} status={invoice.status} />
+          <InvoiceStatusActions
+            projectId={projectId}
+            invoiceId={invoiceId}
+            status={invoice.status}
+            canEdit={canEdit}
+            isOwner={isOwner}
+          />
         </div>
       </div>
 

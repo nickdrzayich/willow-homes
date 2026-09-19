@@ -28,40 +28,31 @@ export async function createTrade(projectId: string, formData: FormData) {
     .limit(1)
     .maybeSingle();
 
-  await supabase.from("trades").insert({
+  const { error } = await supabase.from("trades").insert({
     project_id: projectId,
     name,
     qty: qtyRaw ? Number(qtyRaw) : 1,
     sort_order: (existing?.sort_order ?? 0) + 1,
   });
-
-  revalidatePath(`/admin/projects/${projectId}`);
-}
-
-export async function updateTrade(projectId: string, tradeId: string, formData: FormData) {
-  const supabase = await createClient();
-  const name = String(formData.get("name") ?? "").trim();
-  const qtyRaw = String(formData.get("qty") ?? "").trim();
-
-  await supabase
-    .from("trades")
-    .update({ name, qty: qtyRaw ? Number(qtyRaw) : 1 })
-    .eq("id", tradeId);
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/projects/${projectId}`);
 }
 
 export async function deleteTrade(projectId: string, tradeId: string) {
   const supabase = await createClient();
-  await supabase.from("trades").delete().eq("id", tradeId);
+  const { error } = await supabase.from("trades").delete().eq("id", tradeId);
+  if (error) throw new Error(error.message);
   revalidatePath(`/admin/projects/${projectId}`);
 }
 
 export async function reorderTrades(projectId: string, orderedTradeIds: string[]) {
   const supabase = await createClient();
-  await Promise.all(
+  const results = await Promise.all(
     orderedTradeIds.map((id, index) => supabase.from("trades").update({ sort_order: index }).eq("id", id))
   );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw new Error(failed.error.message);
   revalidatePath(`/admin/projects/${projectId}`);
 }
 
@@ -77,7 +68,8 @@ export async function saveTradeDetails(projectId: string, tradeId: string, formD
   const imagePaths = formData.getAll("imagePath").map(String);
   const imageNames = formData.getAll("imageName").map(String);
 
-  await supabase.from("trades").update({ description }).eq("id", tradeId);
+  const { error: descError } = await supabase.from("trades").update({ description }).eq("id", tradeId);
+  if (descError) throw new Error(descError.message);
 
   if (imagePaths.length > 0) {
     const { data: existing } = await supabase
@@ -90,7 +82,7 @@ export async function saveTradeDetails(projectId: string, tradeId: string, formD
 
     const nextSort = (existing?.sort_order ?? -1) + 1;
 
-    await supabase.from("trade_images").insert(
+    const { error } = await supabase.from("trade_images").insert(
       imagePaths.map((path, i) => ({
         trade_id: tradeId,
         storage_path: path,
@@ -99,6 +91,7 @@ export async function saveTradeDetails(projectId: string, tradeId: string, formD
         created_by: user?.id,
       }))
     );
+    if (error) throw new Error(error.message);
   }
 
   revalidatePath(`/admin/projects/${projectId}`);
@@ -111,6 +104,7 @@ export async function deleteTradeImage(
 ) {
   const supabase = await createClient();
   await supabase.storage.from(TRADE_IMAGES_BUCKET).remove([storagePath]);
-  await supabase.from("trade_images").delete().eq("id", imageId);
+  const { error } = await supabase.from("trade_images").delete().eq("id", imageId);
+  if (error) throw new Error(error.message);
   revalidatePath(`/admin/projects/${projectId}`);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
+import { toast } from "sonner";
 import { createExpense, updateExpense } from "@/lib/actions/expenses";
 import { createClient } from "@/lib/supabase/client";
 import { sanitizeFileName } from "@/lib/utils";
@@ -85,8 +86,13 @@ export function ExpenseForm({
               formData.set("invoiceFileName", file.name);
             }
 
-            await action(formData);
-            setOpen(false);
+            try {
+              await action(formData);
+              toast.success(expense ? "Expense saved" : "Expense added");
+              setOpen(false);
+            } catch (err) {
+              setUploadError(err instanceof Error ? err.message : "Could not save expense");
+            }
           }}
           className="flex flex-col gap-4"
         >

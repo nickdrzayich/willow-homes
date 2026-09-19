@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { createTrade } from "@/lib/actions/trades";
 import { TradeCategoryPicker, type CategoryOption } from "@/components/trades/trade-category-picker";
@@ -28,8 +29,13 @@ export function AddTradeForm({
   return (
     <form
       action={async (formData) => {
-        await action(formData);
-        setOpen(false);
+        try {
+          await action(formData);
+          toast.success("Product/service added");
+          setOpen(false);
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Could not add");
+        }
       }}
       className="flex flex-wrap items-end gap-2 rounded-lg border p-3"
     >
