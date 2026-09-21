@@ -2,11 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, X, Building2 } from "lucide-react";
+import { Search, X, Building2, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { SubcontractorQuickView } from "@/components/companies/subcontractor-quick-view";
+import type { Contact } from "@/components/companies/contacts-section";
 import {
   Select,
   SelectContent,
@@ -18,13 +21,23 @@ import {
 export interface SubcontractorListItem {
   id: string;
   name: string;
+  notes: string | null;
   categoryNames: string[];
   bidCount: number;
   primaryContactName: string | null;
+  contacts: Contact[];
   archived: boolean;
 }
 
-export function SubcontractorList({ companies }: { companies: SubcontractorListItem[] }) {
+export function SubcontractorList({
+  companies,
+  categoryNames,
+  canEdit,
+}: {
+  companies: SubcontractorListItem[];
+  categoryNames: string[];
+  canEdit: boolean;
+}) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("all");
   const [showArchived, setShowArchived] = useState(false);
@@ -102,49 +115,74 @@ export function SubcontractorList({ companies }: { companies: SubcontractorListI
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((company) => (
-            <Link key={company.id} href={`/admin/subcontractors/${company.id}`}>
-              <Card
-                className={cn(
-                  "h-full transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm",
-                  company.archived && "opacity-60"
-                )}
-              >
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-base">{company.name}</CardTitle>
-                    {company.archived && (
-                      <Badge variant="secondary" className="text-[10px]">
-                        Archived
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
-                  {company.primaryContactName ? (
-                    <p className="truncate">{company.primaryContactName}</p>
-                  ) : (
-                    <p className="text-muted-foreground/60">No contacts yet</p>
+            <div key={company.id} className="relative">
+              <Link href={`/admin/subcontractors/${company.id}`}>
+                <Card
+                  className={cn(
+                    "h-full transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm",
+                    company.archived && "opacity-60"
                   )}
-                  {company.categoryNames.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {company.categoryNames.slice(0, 3).map((cat) => (
-                        <Badge key={cat} variant="secondary" className="text-[10px]">
-                          {cat}
-                        </Badge>
-                      ))}
-                      {company.categoryNames.length > 3 && (
+                >
+                  <CardHeader>
+                    <div className="flex items-center gap-2 pr-8">
+                      <CardTitle className="text-base">{company.name}</CardTitle>
+                      {company.archived && (
                         <Badge variant="secondary" className="text-[10px]">
-                          +{company.categoryNames.length - 3}
+                          Archived
                         </Badge>
                       )}
                     </div>
-                  )}
-                  <p>
-                    {company.bidCount} bid{company.bidCount === 1 ? "" : "s"} across all projects
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
+                    {company.primaryContactName ? (
+                      <p className="truncate">{company.primaryContactName}</p>
+                    ) : (
+                      <p className="text-muted-foreground/60">No contacts yet</p>
+                    )}
+                    {company.categoryNames.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {company.categoryNames.slice(0, 3).map((cat) => (
+                          <Badge key={cat} variant="secondary" className="text-[10px]">
+                            {cat}
+                          </Badge>
+                        ))}
+                        {company.categoryNames.length > 3 && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            +{company.categoryNames.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    <p>
+                      {company.bidCount} bid{company.bidCount === 1 ? "" : "s"} across all projects
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+              <SubcontractorQuickView
+                company={{
+                  id: company.id,
+                  name: company.name,
+                  notes: company.notes,
+                  category_names: company.categoryNames,
+                  archived: company.archived,
+                }}
+                contacts={company.contacts}
+                categoryNames={categoryNames}
+                canEdit={canEdit}
+                trigger={
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon-sm"
+                    className="absolute top-3 right-3 shadow-sm"
+                    title="Quick view"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                  </Button>
+                }
+              />
+            </div>
           ))}
         </div>
       )}

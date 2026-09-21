@@ -28,7 +28,7 @@ export default async function SubcontractorsPage({
     supabase
       .from("companies")
       .select(
-        "id, name, category_names, archived_at, bids(count), company_contacts(id, name, phone, email, sort_order)"
+        "id, name, notes, category_names, archived_at, bids(count), company_contacts(id, name, phone, email, sort_order)"
       )
       .order("name"),
     supabase.from("categories").select("name").order("sort_order"),
@@ -38,13 +38,20 @@ export default async function SubcontractorsPage({
   const categoryNames = (categories ?? []).map((c) => c.name);
 
   const items = (companies ?? []).map((c) => {
-    const primaryContact = (c.company_contacts ?? []).slice().sort((a, b) => a.sort_order - b.sort_order)[0];
+    const sortedContacts = (c.company_contacts ?? []).slice().sort((a, b) => a.sort_order - b.sort_order);
     return {
       id: c.id,
       name: c.name,
+      notes: c.notes,
       categoryNames: c.category_names ?? [],
       bidCount: c.bids?.[0]?.count ?? 0,
-      primaryContactName: primaryContact?.name ?? null,
+      primaryContactName: sortedContacts[0]?.name ?? null,
+      contacts: sortedContacts.map((contact) => ({
+        id: contact.id,
+        name: contact.name,
+        phone: contact.phone,
+        email: contact.email,
+      })),
       archived: c.archived_at !== null,
     };
   });
@@ -88,7 +95,7 @@ export default async function SubcontractorsPage({
         )}
       </div>
 
-      <SubcontractorList companies={items} />
+      <SubcontractorList companies={items} categoryNames={categoryNames} canEdit={canEdit} />
     </div>
   );
 }
