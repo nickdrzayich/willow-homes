@@ -10,7 +10,7 @@ import { CompanyDetailsForm } from "@/components/companies/company-details-form"
 import { CompanyDangerZone } from "@/components/companies/company-danger-zone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy } from "lucide-react";
+import { ArrowLeft, Trophy } from "lucide-react";
 
 export default async function CompanyDetailPage({
   params,
@@ -50,6 +50,12 @@ export default async function CompanyDetailPage({
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
+      <Link
+        href="/admin/subcontractors"
+        className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to Subcontractors
+      </Link>
       <div>
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">{company.name}</h1>
