@@ -2,6 +2,7 @@ import { FileText } from "lucide-react";
 import { TradeDetailsForm, type TradeImage } from "@/components/trades/trade-details-form";
 import { Button } from "@/components/ui/button";
 import { isPdfFileName } from "@/lib/utils";
+import { isHeicFileName } from "@/lib/heic";
 
 export function TradeDetails({
   projectId,
@@ -44,7 +45,7 @@ export function TradeDetails({
               {images.map(
                 (image) =>
                   image.url &&
-                  (isPdfFileName(image.file_name) ? (
+                  (isPdfFileName(image.file_name) || isHeicFileName(image.file_name) ? (
                     <a
                       key={image.id}
                       href={image.url}

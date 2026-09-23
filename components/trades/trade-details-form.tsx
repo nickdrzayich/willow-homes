@@ -6,6 +6,7 @@ import { FileText, X } from "lucide-react";
 import { saveTradeDetails, deleteTradeImage } from "@/lib/actions/trades";
 import { createClient } from "@/lib/supabase/client";
 import { isPdfFileName, sanitizeFileName } from "@/lib/utils";
+import { isHeicFileName } from "@/lib/heic";
 import { ImageDropInput } from "@/components/trades/image-drop-input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -98,7 +99,7 @@ export function TradeDetailsForm({
               <div className="flex flex-wrap gap-2">
                 {images.map((image) => (
                   <div key={image.id} className="group relative h-16 w-16 overflow-hidden rounded-md border">
-                    {image.url && isPdfFileName(image.file_name) ? (
+                    {image.url && (isPdfFileName(image.file_name) || isHeicFileName(image.file_name)) ? (
                       <a
                         href={image.url}
                         target="_blank"
@@ -112,8 +113,10 @@ export function TradeDetailsForm({
                       </a>
                     ) : (
                       image.url && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={image.url} alt={image.file_name} className="h-full w-full object-cover" />
+                        <a href={image.url} target="_blank" rel="noreferrer" className="block h-full w-full">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={image.url} alt={image.file_name} className="h-full w-full object-cover" />
+                        </a>
                       )
                     )}
                     <Button

@@ -4,6 +4,7 @@ import { ArrowLeft, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PrintButton } from "@/components/expenses/print-button";
 import { isPdfFileName } from "@/lib/utils";
+import { isHeicFileName } from "@/lib/heic";
 
 export default async function SpecSheetPage({
   params,
@@ -72,7 +73,7 @@ export default async function SpecSheetPage({
                     {images.map(
                       (image) =>
                         image.url &&
-                        (isPdfFileName(image.file_name) ? (
+                        (isPdfFileName(image.file_name) || isHeicFileName(image.file_name) ? (
                           <a
                             key={image.id}
                             href={image.url}

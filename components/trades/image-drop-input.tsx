@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type DragEvent } from "react";
-import { FileText, UploadCloud, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { FileText, Loader2, UploadCloud, X } from "lucide-react";
 import { isPdfFileName } from "@/lib/utils";
+import { isHeicFile, convertHeicToJpeg } from "@/lib/heic";
 
 export function ImageDropInput({
   files,
@@ -12,15 +13,29 @@ export function ImageDropInput({
   onChange: (files: File[]) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [converting, setConverting] = useState(false);
   const previews = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files]);
 
   useEffect(() => {
     return () => previews.forEach((url) => URL.revokeObjectURL(url));
   }, [previews]);
 
-  function addFiles(list: FileList | null) {
+  async function addFiles(list: FileList | null) {
     if (!list?.length) return;
-    onChange([...files, ...Array.from(list)]);
+    const incoming = Array.from(list);
+    const hasHeic = incoming.some(isHeicFile);
+
+    if (!hasHeic) {
+      onChange([...files, ...incoming]);
+      return;
+    }
+
+    setConverting(true);
+    const converted = await Promise.all(
+      incoming.map((file) => (isHeicFile(file) ? convertHeicToJpeg(file).catch(() => file) : file))
+    );
+    setConverting(false);
+    onChange([...files, ...converted]);
   }
 
   return (
@@ -50,9 +65,19 @@ export function ImageDropInput({
             e.target.value = "";
           }}
         />
-        <UploadCloud className="h-5 w-5 text-muted-foreground" />
+        {converting ? (
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        ) : (
+          <UploadCloud className="h-5 w-5 text-muted-foreground" />
+        )}
         <p className="text-sm">
-          <span className="font-medium text-primary">Click to add photos or PDFs</span> or drag and drop
+          {converting ? (
+            "Converting HEIC photo..."
+          ) : (
+            <>
+              <span className="font-medium text-primary">Click to add photos or PDFs</span> or drag and drop
+            </>
+          )}
         </p>
       </div>
       {files.length > 0 && (
