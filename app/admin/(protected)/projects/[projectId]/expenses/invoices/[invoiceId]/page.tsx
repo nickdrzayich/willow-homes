@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { InvoiceStatusActions } from "@/components/expenses/invoice-status-actions";
 import { PrintButton } from "@/components/expenses/print-button";
 import { Badge } from "@/components/ui/badge";
-import { EXPENSE_CATEGORY_META, formatCurrency, formatCurrencyPrecise } from "@/lib/calculations";
+import { EXPENSE_CATEGORY_META, formatCurrencyPrecise } from "@/lib/calculations";
 import type { ExpenseCategory, InvoiceStatus } from "@/lib/types";
 
 const INVOICE_STATUS_META: Record<InvoiceStatus, { label: string; variant: "outline" | "secondary" | "default" }> = {
@@ -166,15 +166,15 @@ export default async function InvoiceReportPage({
         <div className="flex flex-col items-end gap-1 border-t pt-4 text-sm">
           <div className="flex w-56 justify-between">
             <span className="text-muted-foreground">Cost of the Work</span>
-            <span>{formatCurrency(invoice.subtotal)}</span>
+            <span>{formatCurrencyPrecise(invoice.subtotal)}</span>
           </div>
           <div className="flex w-56 justify-between">
             <span className="text-muted-foreground">Builder Fee ({invoice.builder_fee_percent}%)</span>
-            <span>{formatCurrency(invoice.builder_fee_amount)}</span>
+            <span>{formatCurrencyPrecise(invoice.builder_fee_amount)}</span>
           </div>
           <div className="flex w-56 justify-between border-t pt-1 text-base font-semibold">
             <span>Total Due</span>
-            <span>{formatCurrency(invoice.total)}</span>
+            <span>{formatCurrencyPrecise(invoice.total)}</span>
           </div>
         </div>
       </div>
