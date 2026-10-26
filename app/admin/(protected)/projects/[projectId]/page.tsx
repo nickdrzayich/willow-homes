@@ -30,7 +30,7 @@ export default async function ProjectDetailPage({
   ] = await Promise.all([
       supabase
         .from("projects")
-        .select("id, name, address, sqft, use_custom_trade_order")
+        .select("id, name, address, sqft, use_custom_trade_order, permit_number, inspection_phone")
         .eq("id", projectId)
         .single(),
       supabase
@@ -84,6 +84,12 @@ export default async function ProjectDetailPage({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
           {project.address && <p className="mt-1 text-sm text-muted-foreground">{project.address}</p>}
+          {(project.permit_number || project.inspection_phone) && (
+            <p className="mt-1 flex flex-wrap gap-x-3 text-sm text-muted-foreground">
+              {project.permit_number && <span>Permit #{project.permit_number}</span>}
+              {project.inspection_phone && <span>Inspections: {project.inspection_phone}</span>}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           <Button

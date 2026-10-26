@@ -10,7 +10,14 @@ export function ProjectSettingsForm({
   project,
 }: {
   action: (formData: FormData) => Promise<void>;
-  project: { name: string; address: string | null; sqft: number | null; builder_fee_percent: number };
+  project: {
+    name: string;
+    address: string | null;
+    sqft: number | null;
+    builder_fee_percent: number;
+    permit_number: string | null;
+    inspection_phone: string | null;
+  };
 }) {
   return (
     <form
@@ -31,6 +38,20 @@ export function ProjectSettingsForm({
       <div className="flex flex-col gap-2">
         <Label htmlFor="sqft">Square feet</Label>
         <Input id="sqft" name="sqft" type="number" step="1" min="0" defaultValue={project.sqft ?? ""} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="permitNumber">Permit number</Label>
+        <Input id="permitNumber" name="permitNumber" defaultValue={project.permit_number ?? ""} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="inspectionPhone">Inspection request phone</Label>
+        <Input
+          id="inspectionPhone"
+          name="inspectionPhone"
+          type="tel"
+          defaultValue={project.inspection_phone ?? ""}
+          placeholder="e.g. (208) 555-0123"
+        />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="builderFeePercent">Builder fee %</Label>

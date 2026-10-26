@@ -21,6 +21,7 @@ export type ExpenseCategory =
 export type ExpensePaidStatus = "unpaid" | "paid";
 export type InvoiceStatus = "draft" | "sent" | "paid";
 export type TransactionType = "deposit" | "withdrawal";
+export type ProjectDocumentCategory = "interior_selections" | "exterior_selections" | "interior_colors";
 
 export interface Database {
   public: {
@@ -50,6 +51,8 @@ export interface Database {
           sqft: number | null;
           builder_fee_percent: number;
           use_custom_trade_order: boolean;
+          permit_number: string | null;
+          inspection_phone: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -61,6 +64,8 @@ export interface Database {
           sqft?: number | null;
           builder_fee_percent?: number;
           use_custom_trade_order?: boolean;
+          permit_number?: string | null;
+          inspection_phone?: string | null;
           created_by: string;
         };
         Update: {
@@ -69,6 +74,8 @@ export interface Database {
           sqft?: number | null;
           builder_fee_percent?: number;
           use_custom_trade_order?: boolean;
+          permit_number?: string | null;
+          inspection_phone?: string | null;
         };
         Relationships: [
           {
@@ -358,6 +365,41 @@ export interface Database {
             columns: ["trade_id"];
             isOneToOne: false;
             referencedRelation: "trades";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      project_documents: {
+        Row: {
+          id: string;
+          project_id: string;
+          category: ProjectDocumentCategory;
+          storage_path: string;
+          file_name: string;
+          sort_order: number;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          category: ProjectDocumentCategory;
+          storage_path: string;
+          file_name: string;
+          sort_order?: number;
+          created_by?: string | null;
+        };
+        Update: {
+          storage_path?: string;
+          file_name?: string;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_documents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
             referencedColumns: ["id"];
           },
         ];

@@ -59,16 +59,21 @@ export async function updateProjectSettings(projectId: string, formData: FormDat
   const address = String(formData.get("address") ?? "").trim() || null;
   const sqftRaw = String(formData.get("sqft") ?? "").trim();
   const builderFeeRaw = String(formData.get("builderFeePercent") ?? "").trim();
+  const permitNumber = String(formData.get("permitNumber") ?? "").trim() || null;
+  const inspectionPhone = String(formData.get("inspectionPhone") ?? "").trim() || null;
 
-  await supabase
+  const { error } = await supabase
     .from("projects")
     .update({
       name,
       address,
       sqft: sqftRaw ? Number(sqftRaw) : null,
       builder_fee_percent: builderFeeRaw ? Number(builderFeeRaw) : 20,
+      permit_number: permitNumber,
+      inspection_phone: inspectionPhone,
     })
     .eq("id", projectId);
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/projects/${projectId}`);
   revalidatePath(`/admin/projects/${projectId}/settings`);
