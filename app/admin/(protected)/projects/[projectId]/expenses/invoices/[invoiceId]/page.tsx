@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowLeft, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -13,6 +14,31 @@ const INVOICE_STATUS_META: Record<InvoiceStatus, { label: string; variant: "outl
   sent: { label: "Sent", variant: "secondary" },
   paid: { label: "Paid", variant: "default" },
 };
+
+// Browsers suggest the page's <title> as the default "Save as PDF" file name
+// when printing, so this doubles as the invoice's download file name.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ projectId: string; invoiceId: string }>;
+}): Promise<Metadata> {
+  const { invoiceId } = await params;
+  const supabase = await createClient();
+  const { data: invoice } = await supabase
+    .from("monthly_invoices")
+    .select("period_start")
+    .eq("id", invoiceId)
+    .single();
+
+  if (!invoice) return {};
+
+  const periodLabel = new Date(`${invoice.period_start}T00:00:00`).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
+  return { title: `Willow Homes - ${periodLabel} Invoice` };
+}
 
 export default async function InvoiceReportPage({
   params,
