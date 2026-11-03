@@ -20,10 +20,14 @@ const INVOICE_STATUS_META: Record<InvoiceStatus, { label: string; variant: "outl
 
 export default async function ExpensesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { projectId } = await params;
+  const { tab } = await searchParams;
+  const defaultTab = tab === "invoices" ? "invoices" : "expenses";
   const supabase = await createClient();
 
   const {
@@ -100,7 +104,7 @@ export default async function ExpensesPage({
         </div>
       </div>
 
-      <Tabs defaultValue="expenses">
+      <Tabs defaultValue={defaultTab}>
         <TabsList>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
           <TabsTrigger value="invoices">Monthly Invoices</TabsTrigger>

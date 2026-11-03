@@ -112,10 +112,10 @@ export default async function InvoiceReportPage({
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <div className="flex items-center justify-between gap-4 print:hidden">
         <Link
-          href={`/admin/projects/${projectId}/expenses`}
+          href={`/admin/projects/${projectId}/expenses?tab=invoices`}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to expenses
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Monthly Invoices
         </Link>
         <div className="flex items-center gap-2">
           <PrintButton />
