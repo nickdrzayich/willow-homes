@@ -7,6 +7,7 @@ import { DeleteLogEntryButton } from "@/components/daily-log/delete-log-entry-bu
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatLogDate } from "@/lib/utils";
 
 export function DailyLogList({
   projectId,
@@ -25,6 +26,7 @@ export function DailyLogList({
     return entries.filter(
       (entry) =>
         entry.log_date.includes(query) ||
+        formatLogDate(entry.log_date).toLowerCase().includes(query) ||
         entry.notes?.toLowerCase().includes(query) ||
         entry.tasks.some((task) => task.toLowerCase().includes(query))
     );
@@ -68,7 +70,7 @@ export function DailyLogList({
             <Card key={entry.id}>
               <CardContent className="flex items-start justify-between gap-4 py-4">
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-sm font-medium">{entry.log_date}</p>
+                  <p className="text-sm font-medium">{formatLogDate(entry.log_date)}</p>
                   {entry.tasks.length > 0 && (
                     <ul className="list-inside list-disc text-sm text-muted-foreground">
                       {entry.tasks.map((task, i) => (
@@ -89,7 +91,11 @@ export function DailyLogList({
                         </Button>
                       }
                     />
-                    <DeleteLogEntryButton projectId={projectId} entryId={entry.id} logDate={entry.log_date} />
+                    <DeleteLogEntryButton
+                      projectId={projectId}
+                      entryId={entry.id}
+                      logDate={formatLogDate(entry.log_date)}
+                    />
                   </div>
                 )}
               </CardContent>
