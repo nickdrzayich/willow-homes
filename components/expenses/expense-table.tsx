@@ -107,7 +107,7 @@ export function ExpenseTable({
               <TableHead>Billable</TableHead>
               <TableHead>Paid</TableHead>
               <TableHead>File</TableHead>
-              <TableHead />
+              <TableHead className="sticky right-0 bg-background" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -172,7 +172,7 @@ export function ExpenseTable({
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="sticky right-0 bg-background shadow-[-4px_0_4px_-4px_rgba(0,0,0,0.15)]">
                   {canEdit && (
                     <div className="flex items-center gap-1">
                       <ExpenseForm
